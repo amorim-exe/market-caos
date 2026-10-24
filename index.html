@@ -213,7 +213,7 @@ mtlLoader.load('./models/materials.mtl', materials=>{
       new THREE.MeshStandardMaterial({color:0x777b80, roughness:0.95})
     );
     floorBase.rotation.x = -Math.PI/2;
-    floorBase.position.y = -0.035;
+    floorBase.position.y = 0;
     floorBase.receiveShadow = true;
     scene.add(floorBase);
 
@@ -291,17 +291,38 @@ function spawnShelfProduct(pos,yLevel){
 
   // Só uma parte dos produtos usa física completa. O restante mantém as prateleiras cheias
   // sem criar centenas de corpos dinâmicos que derrubam o FPS.
-  const canMove=Math.random()<0.24;
-  if(canMove){
-    const body=new CANNON.Body({mass:0,material:objectMat,position:new CANNON.Vec3(pos.x,yLevel+0.31,pos.z),allowSleep:true,sleepSpeedLimit:0.15,sleepTimeLimit:0.8});
-    body.addShape(new CANNON.Box(new CANNON.Vec3(0.25,0.3,0.22)));
-    body.userData={promotable:true};
-    world.addBody(body);
-    synced.push({mesh,body});
-    // Mantém os produtos em repouso sobre a prateleira até uma colisão/explosão os ativar.
-    if(!window.__shelfBodies) window.__shelfBodies=[];
-    window.__shelfBodies.push(body);
-  }
+  
+const body = new CANNON.Body({
+  mass: 0,
+  material: objectMat,
+  position: new CANNON.Vec3(
+    mesh.position.x,
+    mesh.position.y,
+    mesh.position.z
+  ),
+  allowSleep: true,
+  sleepSpeedLimit: 0.15,
+  sleepTimeLimit: 0.8,
+  linearDamping: 0.08,
+  angularDamping: 0.15
+});
+
+// Colisão simples para cada produto.
+body.addShape(
+  new CANNON.Box(new CANNON.Vec3(0.25, 0.3, 0.22))
+);
+
+body.userData = { promotable: true };
+
+world.addBody(body);
+synced.push({ mesh, body });
+
+if (!window.__shelfBodies) {
+  window.__shelfBodies = [];
+}
+
+window.__shelfBodies.push(body);
+
 }
 
 
@@ -313,7 +334,13 @@ function spawnShelves(){
 
     addBox({x:4,y:.5,z:50},{x,y:.25,z:0},0,shelfColors[Math.abs(i)%2],groundMat);
 
-    addBox({x:4,y:.2,z:50},{x,y:3,z:0},0,shelfColors[Math.abs(i)%2],groundMat);
+addBox({x:4,y:.2,z:50},{x,y:3.3,z:0},0,shelfColors[Math.abs(i)%2],groundMat);    // Adicionar colisão vertical para o corpo das prateleiras
+    // const shelfBody=new CANNON.Body({mass:0,material:groundMat,position:new CANNON.Vec3(x,2,0)});
+    // shelfBody.addShape(
+    //   new CANNON.Box(new CANNON.Vec3(2.0, 2.5, 25))
+    // );    
+    
+    // world.addBody(shelfBody);
 
     for(let z=-24;z<=24;z+=1.25){
 
@@ -330,127 +357,155 @@ function spawnShelves(){
 
 
 
-function spawnWallsAndDecorations(){
 
-  // Paredes ao redor do mapa (duplicadas para cobrir toda a extensão)
+function spawnWallsAndDecorations() {
+  if (!wallModel) return;
 
-  const wallPositions=[];
+  const mapMin = -50;
+  const mapMax = 50;
+  const wallY = 0;
+  const wallHeight = 10;
+  const wallThickness = 0.1;
 
-  // Parede norte
+  // Cria um modelo normalizado, mantendo a proporção original.
+  const template = wallModel.clone(true);
+  template.updateMatrixWorld(true);
 
-  for(let x=-47.5;x<=47.5;x+=1.8){
+  const originalBox = new THREE.Box3().setFromObject(template);
+  const originalSize = originalBox.getSize(new THREE.Vector3());
 
-    wallPositions.push({x,z:-48,rotY:0});
-
+  if (
+    originalSize.x < 0.001 ||
+    originalSize.y < 0.001 ||
+    originalSize.z < 0.001
+  ) {
+    console.error("O modelo wall.glb não possui dimensões válidas.");
+    return;
   }
 
-  // Parede sul
+  // O eixo X será o comprimento da parede.
+  // A altura e a espessura são ajustadas pelas dimensões reais.
+  const length = Math.max(originalSize.x, originalSize.z);
+  const depth = Math.min(originalSize.x, originalSize.z);
 
-  for(let x=-47.5;x<=47.5;x+=1.8){
+  // Ajusta cada segmento para ter 6 unidades de comprimento,
+  // altura de 10 e espessura de 1.
+  const segmentLength = 6;
+  const scale = new THREE.Vector3(
+    segmentLength / length,
+    wallHeight / originalSize.y,
+    wallThickness / depth
+  );
 
-    wallPositions.push({x,z:48,rotY:Math.PI});
+  // O modelo pode ter sido exportado deitado.
+  // Esta função assume que a altura original está no eixo Y.
+  const createWallSegment = (x, z, rotationY, targetLength) => {
+    const wall = wallModel.clone(true);
 
+    const targetScale = new THREE.Vector3(
+      targetLength / length,
+      wallHeight / originalSize.y,
+      wallThickness / depth
+    );
+
+    wall.scale.copy(targetScale);
+    wall.rotation.set(0, rotationY, 0);
+
+    // Centraliza o modelo no segmento e calcula sua base.
+    wall.position.set(x, wallY, z);
+    wall.updateMatrixWorld(true);
+
+    let box = new THREE.Box3().setFromObject(wall);
+    wall.position.y -= box.min.y - wallY;
+    wall.updateMatrixWorld(true);
+
+    box = new THREE.Box3().setFromObject(wall);
+
+    wall.traverse(child => {
+      if (child.isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+
+    scene.add(wall);
+  };
+
+  // Paredes horizontais: os segmentos se sobrepõem ligeiramente
+  // para evitar frestas causadas por pequenas diferenças de escala.
+  const overlap = 0.08;
+  const step = segmentLength - overlap;
+
+  for (let x = mapMin; x < mapMax; x += step) {
+    const len = Math.min(segmentLength, mapMax - x + overlap);
+    const centerX = x + len / 2;
+
+    createWallSegment(centerX, mapMin, 0, len);
+    createWallSegment(centerX, mapMax, Math.PI, len);
   }
 
-  // Parede oeste
+  // Paredes verticais, incluindo as extremidades.
+  for (let z = mapMin; z < mapMax; z += step) {
+    const len = Math.min(segmentLength, mapMax - z + overlap);
+    const centerZ = z + len / 2;
 
-  for(let z=-47.5;z<=47.5;z+=1.8){
-
-    wallPositions.push({x:-48,z,rotY:Math.PI/2});
-
+    createWallSegment(mapMin, centerZ, Math.PI / 2, len);
+    createWallSegment(mapMax, centerZ, -Math.PI / 2, len);
   }
 
-  // Parede leste
+  // Fecha os quatro cantos visualmente.
+  const cornerMaterial = new THREE.MeshStandardMaterial({
+    color: 0xd0d0c8,
+    roughness: 0.9
+  });
 
-  for(let z=-47.5;z<=47.5;z+=1.8){
+  // Fecha os cantos com peças maiores, sobrepostas às duas paredes.
+  const cornerSize = 4.8;
 
-    wallPositions.push({x:48,z,rotY:-Math.PI/2});
+  for (const x of [mapMin, mapMax]) {
+    for (const z of [mapMin, mapMax]) {
+      const corner = new THREE.Mesh(
+        new THREE.BoxGeometry(cornerSize, wallHeight, cornerSize),
+        cornerMaterial
+      );
 
-  }
+      corner.position.set(
+        x,
+        wallY + wallHeight / 2,
+        z
+      );
 
-
-
-  for(const pos of wallPositions){
-
-    if(wallModel){
-
-      const wall=wallModel.clone();
-
-      fitModel(wall);
-
-      wall.scale.setScalar(2);
-
-      wall.position.set(pos.x,-1,pos.z);
-
-      wall.rotation.y=pos.rotY;
-
-      wall.castShadow=false;
-
-      wall.receiveShadow=false;
-
-      scene.add(wall);
-
+      corner.castShadow = true;
+      corner.receiveShadow = true;
+      scene.add(corner);
     }
-
   }
 
+  // Colisões físicas contínuas, alinhadas com o perímetro visual.
+  const collisionMaterial = groundMat;
 
+  const addWallCollider = (x, z, sx, sz) => {
+    const body = new CANNON.Body({
+      mass: 0,
+      material: collisionMaterial,
+      position: new CANNON.Vec3(x, wallY + wallHeight / 2, z)
+    });
 
-  // Fechamento dos quatro cantos com segmentos sólidos, evitando frestas entre paredes.
-  const cornerMat = new THREE.MeshStandardMaterial({color:0xd0d0c8, roughness:0.9});
-  for (const cx of [-48,48]) for (const cz of [-48,48]) {
-    const corner = new THREE.Mesh(new THREE.BoxGeometry(2.4,6,2.4), cornerMat);
-    corner.position.set(cx,2,cz);
-    corner.castShadow = true;
-    corner.receiveShadow = true;
-    scene.add(corner);
-  }
+    body.addShape(
+      new CANNON.Box(
+        new CANNON.Vec3(sx / 2, wallHeight / 2, sz / 2)
+      )
+    );
 
-  // Quadros nas paredes
+    world.addBody(body);
+  };
 
-  const quadroPositions=[
-
-    {x:-20,z:-47,rotY:0,type:1},
-
-    {x:0,z:-47,rotY:0,type:2},
-
-    {x:20,z:-47,rotY:0,type:1},
-
-    {x:-20,z:47,rotY:Math.PI,type:2},
-
-    {x:0,z:47,rotY:Math.PI,type:1},
-
-    {x:20,z:47,rotY:Math.PI,type:2}
-
-  ];
-
-
-
-  for(const pos of quadroPositions){
-
-    const model=pos.type===1?quadro1Model:quadro2Model;
-
-    if(model){
-
-      const quadro=model.clone();
-
-      fitModel(quadro);
-
-      quadro.scale.setScalar(2);
-
-      quadro.position.set(pos.x,3.0,pos.z > 0 ? 46.65 : -46.65);
-
-      quadro.rotation.y=pos.rotY;
-
-      quadro.castShadow=false;
-
-      scene.add(quadro);
-
-    }
-
-  }
-
+  addWallCollider(0, mapMin, 100, wallThickness);
+  addWallCollider(0, mapMax, 100, wallThickness);
+  addWallCollider(mapMin, 0, wallThickness, 100);
+  addWallCollider(mapMax, 0, wallThickness, 100);
 }
+
 
 const ramp=addBox({x:8,y:1,z:12},{x:0,y:.2,z:-25},0,0xff9900,groundMat);
 
@@ -468,9 +523,7 @@ const cartBody=new CANNON.Body({
 
   linearDamping:0,angularDamping:.98,
 
-  sleepSpeedLimit:0,sleepTimeLimit:0,fixedRotation:true,
-
-  type:CANNON.Body.KINEMATIC
+  sleepSpeedLimit:0,sleepTimeLimit:0,fixedRotation:true
 
 });
 
@@ -987,14 +1040,13 @@ function animate(){
 
   }
 
-  const maxSpeed=turboTime>0?35:20;
+  const maxSpeed = turboTime > 0 ? 28 : 16;
 
   const targetSpeed=accelerating?maxSpeed:(reversing?-maxSpeed*.55:0);
 
   let currentForwardSpeed=cartBody.velocity.x*(-Math.sin(currentHeading))+cartBody.velocity.z*(-Math.cos(currentHeading));
 
-  const accel=accelerating||reversing?35:20;
-
+  const accel = accelerating || reversing ? 35 : 20;
   const difference=targetSpeed-currentForwardSpeed;
 
   currentForwardSpeed+=THREE.MathUtils.clamp(difference,-accel*delta,accel*delta);
@@ -1027,7 +1079,7 @@ function animate(){
 
   if(keys[' ']&&jumpCooldown<=0&&cartBody.position.y<2.2){
 
-    cartBody.velocity.y=8;jumpCooldown=.9;jumpActiveTime=.42;
+    cartBody.velocity.y=10;jumpCooldown=.9;jumpActiveTime=.42;
 
   }
 
@@ -1054,7 +1106,7 @@ function animate(){
 
   for(const item of synced){
     // Produtos de prateleira só entram na física dinâmica quando o carrinho chega perto.
-    if(item.body.userData && item.body.userData.promotable && item.body.mass===0 && cartBody.position.distanceTo(item.body.position)<2.35){
+    if(item.body.userData && item.body.userData.promotable && item.body.mass===0 && cartBody.position.distanceTo(item.body.position)<2.8){
       promoteBody(item.body);
       const push=item.body.position.vsub(cartBody.position);
       if(push.lengthSquared()<0.01) push.set(0,0,1);
