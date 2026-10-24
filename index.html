@@ -696,6 +696,9 @@
 
     const wheels = [];
 
+    let bananaFlipUntil = 0;
+    let bananaFlipped = false;
+
     // ========================================
     // SISTEMA DE PEGAR E ARRASTAR PRODUTOS
     // ========================================
@@ -1520,7 +1523,27 @@
       }
       cartGroup.position.set(cartBody.position.x, cartBody.position.y - .55, cartBody.position.z);
 
-      cartGroup.rotation.set(0, currentHeading, 0);
+      // Rotação normal do carrinho + capotamento da banana
+      if (bananaFlipped) {
+        if (performance.now() >= bananaFlipUntil) {
+          bananaFlipped = false;
+          showStatus('🚗 RECUPERADO!', '#4ade80');
+        }
+      }
+
+      cartGroup.rotation.set(
+        bananaFlipped ? Math.PI : 0,
+        currentHeading,
+        0
+      );
+
+      if (bananaFlipped) {
+        cartBody.velocity.x = 0;
+        cartBody.velocity.z = 0;
+        cartBody.angularVelocity.set(0, 0, 0);
+      } else {
+        // Mantenha aqui sua lógica atual de movimento
+      }
 
       for (const item of synced) {
 
@@ -1568,7 +1591,16 @@
 
         if (cartBody.position.distanceTo(item.body.position) < 2.05) {
 
-          if (item.type === 'banana') { showStatus('ESCORREGOU!', '#ffea00'); currentHeading += Math.PI; cartBody.velocity.x += Math.sin(currentHeading) * 4; cartBody.velocity.z += Math.cos(currentHeading) * 4; }
+          if (item.type === 'banana') {
+            showStatus('🍌 CAPOTOU!', '#ff3366');
+
+            bananaFlipped = true;
+            bananaFlipUntil = performance.now() + 3000;
+
+            currentHeading += Math.PI;
+            cartBody.velocity.x += Math.sin(currentHeading) * 4;
+            cartBody.velocity.z += Math.cos(currentHeading) * 4;
+          }
 
           else if (item.type === 'soda') { showStatus('TURBOOO!'); turboTime = 3.5; }
 
