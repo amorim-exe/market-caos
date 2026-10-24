@@ -120,6 +120,26 @@
         display: none
       }
     }
+
+    #mission {
+      max-width: 260px;
+      pointer-events: none;
+    }
+
+    #mission h3 {
+      color: #ffea00;
+    }
+
+    #drag-hint {
+      color: #86efac;
+      font-size: 12px;
+    }
+
+    @media (max-width: 650px) {
+      #mission {
+        max-width: 100%;
+      }
+    }
   </style>
 
   <script type="importmap">
@@ -136,7 +156,7 @@
 
     <header>
       <h1>CAOS NO SUPERMERCADO 🛒</h1>
-      <p class="subtitle">Destrua tudo! Física maluca ativada.</p>
+      <p class="subtitle">Compre tudo! Física maluca ativada.</p>
     </header>
 
     <div class="bottom">
@@ -159,6 +179,17 @@
         <p>🍌 Banana: escorregão!</p>
         <p>🥤 Refri: super turbo!</p>
         <p>🍉 Melancia: explosão!</p>
+      </div>
+
+      <div class="panel" id="mission">
+        <h3>🛒 LISTA DE COMPRAS</h3>
+        <p>🍌 Banana: <span id="goal-banana">0/3</span></p>
+        <p>🥤 Refri: <span id="goal-soda">0/2</span></p>
+        <p>🥛 Leite: <span id="goal-milk">0/2</span></p>
+        <p>🥣 Cereal: <span id="goal-cereal">0/1</span></p>
+        <hr>
+        <p>⭐ Pontos: <span id="score">0</span></p>
+        <p id="drag-hint">Clique e arraste os produtos para o carrinho!</p>
       </div>
 
     </div>
@@ -367,14 +398,28 @@
 
 
     function spawnShelfProduct(pos, yLevel) {
-      const shelfModels = [beerModel, canned1Model, cerealModel, cereal2Model, hotdogModel, milkModel].filter(Boolean);
+      const shelfModels = [
+        { model: beerModel, type: 'beer' },
+        { model: canned1Model, type: 'can' },
+        { model: cerealModel, type: 'cereal' },
+        { model: cereal2Model, type: 'cereal' },
+        { model: hotdogModel, type: 'hotdog' },
+        { model: milkModel, type: 'milk' }
+      ].filter(item => item.model);
       const palette = [0xe84c3d, 0xf4c542, 0x3da5d9, 0x54b86a, 0x9b6ad6, 0xf08a36, 0xe9e9e9];
       const useModel = shelfModels.length > 0 && Math.random() < 0.76;
       let mesh;
+      let productType = 'misc';
 
       if (useModel) {
-        const model = shelfModels[Math.floor(Math.random() * shelfModels.length)];
+        const selected = shelfModels[
+          Math.floor(Math.random() * shelfModels.length)
+        ];
+
+        const model = selected.model;
+        productType = selected.type;
         mesh = model.clone(true);
+        productType = model.type;
         // Normaliza o modelo uma vez por cópia e dá tamanho de produto de prateleira.
         fitModel(mesh);
         const offset = mesh.position.clone();
@@ -395,6 +440,9 @@
 
       mesh.traverse ? mesh.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } }) : (mesh.castShadow = false, mesh.receiveShadow = false);
       scene.add(mesh);
+
+      mesh.userData.productType = productType;
+      mesh.userData.collectible = true;
 
       // Só uma parte dos produtos usa física completa. O restante mantém as prateleiras cheias
       // sem criar centenas de corpos dinâmicos que derrubam o FPS.
@@ -646,6 +694,196 @@
     let cartVisual = null;
 
     const wheels = [];
+
+    // ========================================
+    // SISTEMA DE PEGAR E ARRASTAR PRODUTOS
+    // ========================================
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const dragPlane = new THREE.Plane();
+    const dragPoint = new THREE.Vector3();
+
+    let draggedItem = null;
+    let dragHeight = 2.8;
+    let score = 0;
+
+    const goals = {
+      banana: 3,
+      soda: 2,
+      milk: 2,
+      cereal: 1
+    };
+
+    const collected = {
+      banana: 0,
+      soda: 0,
+      milk: 0,
+      cereal: 0
+    };
+
+    function updateMission() {
+      for (const type of Object.keys(goals)) {
+        const el = document.getElementById(`goal-${type}`);
+        if (el) {
+          el.textContent = `${collected[type]}/${goals[type]}`;
+          el.style.color =
+            collected[type] >= goals[type] ? '#4ade80' : 'white';
+        }
+      }
+
+      document.getElementById('score').textContent = score;
+
+      if (Object.keys(goals).every(type =>
+        collected[type] >= goals[type]
+      )) {
+        showStatus('🛒 LISTA COMPLETA!', '#4ade80');
+      }
+    }
+
+    function setMousePosition(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+
+    function getProductFromMouse(event) {
+      setMousePosition(event);
+      raycaster.setFromCamera(mouse, camera);
+
+      const roots = synced
+        .filter(item => item.mesh?.userData?.collectible)
+        .map(item => item.mesh);
+
+      const hits = raycaster.intersectObjects(roots, true);
+
+      if (!hits.length) return null;
+
+      const hit = hits[0].object;
+
+      return synced.find(item =>
+        item.mesh === hit ||
+        item.mesh.getObjectById(hit.id) === hit
+      ) || null;
+    }
+
+    renderer.domElement.addEventListener('pointerdown', event => {
+      if (event.button !== 0 || draggedItem) return;
+
+      const item = getProductFromMouse(event);
+      if (!item) return;
+
+      event.preventDefault();
+
+      draggedItem = {
+        ...item,
+        originalMass: item.body.mass,
+        wasDynamic: item.body.mass > 0,
+        mesh: item.mesh,
+        body: item.body
+      };
+
+      // Retira o corpo do solver enquanto o mouse controla o produto.
+      world.removeBody(item.body);
+
+      dragHeight = Math.max(2.5, cartGroup.position.y + 1.25);
+
+      dragPlane.setFromNormalAndCoplanarPoint(
+        new THREE.Vector3(0, 1, 0),
+        new THREE.Vector3(0, dragHeight, 0)
+      );
+
+      renderer.domElement.setPointerCapture(event.pointerId);
+      renderer.domElement.style.cursor = 'grabbing';
+
+      showStatus('PEGOU! 🛒', '#4ade80');
+    });
+
+    renderer.domElement.addEventListener('pointermove', event => {
+      if (!draggedItem) {
+        const hovered = getProductFromMouse(event);
+        renderer.domElement.style.cursor = hovered ? 'grab' : 'default';
+        return;
+      }
+
+      setMousePosition(event);
+      raycaster.setFromCamera(mouse, camera);
+
+      if (!raycaster.ray.intersectPlane(dragPlane, dragPoint)) return;
+
+      const { mesh, body } = draggedItem;
+
+      // Mantém o produto em um plano horizontal à altura do cesto.
+      mesh.position.set(dragPoint.x, dragHeight, dragPoint.z);
+
+      body.position.set(dragPoint.x, dragHeight, dragPoint.z);
+      body.velocity.set(0, 0, 0);
+      body.angularVelocity.set(0, 0, 0);
+    });
+
+    function finishDragging() {
+      if (!draggedItem) return;
+
+      const item = draggedItem;
+      draggedItem = null;
+
+      const { mesh, body } = item;
+
+      // Distância horizontal até o centro do carrinho.
+      const dx = mesh.position.x - cartGroup.position.x;
+      const dz = mesh.position.z - cartGroup.position.z;
+      const distance = Math.hypot(dx, dz);
+
+      // Aceita itens dentro ou perto do cesto.
+      if (distance < 1.65) {
+        const type = mesh.userData.productType || 'misc';
+
+        scene.remove(mesh);
+        world.removeBody(body);
+
+        const syncedIndex = synced.findIndex(entry => entry.body === body);
+        if (syncedIndex !== -1) synced.splice(syncedIndex, 1);
+
+        const dynamicIndex = dynamicBodies.indexOf(body);
+        if (dynamicIndex !== -1) dynamicBodies.splice(dynamicIndex, 1);
+
+        const specialIndex = specialItems.findIndex(entry => entry.body === body);
+        if (specialIndex !== -1) specialItems.splice(specialIndex, 1);
+
+        // Os produtos de missão avançam a lista; os extras dão pontos.
+        if (Object.hasOwn(goals, type) && collected[type] < goals[type]) {
+          collected[type]++;
+          score += 100;
+          showStatus('BOA! +100 ⭐', '#4ade80');
+        } else {
+          score += 25;
+          showStatus('ITEM COLETADO! +25', '#ffea00');
+        }
+
+        updateMission();
+      } else {
+        // Se soltou fora, devolve o produto à física para ele cair.
+        body.mass = item.wasDynamic ? item.originalMass : 0.8;
+        body.type = CANNON.Body.DYNAMIC;
+        body.updateMassProperties();
+        body.position.set(mesh.position.x, mesh.position.y, mesh.position.z);
+        body.velocity.set(0, -1, 0);
+        body.angularVelocity.set(0, 0, 0);
+        body.wakeUp();
+
+        world.addBody(body);
+
+        if (!dynamicBodies.includes(body)) dynamicBodies.push(body);
+
+        showStatus('ERROU O CESTO! 😂', '#ff3366');
+      }
+
+      renderer.domElement.style.cursor = 'default';
+    }
+
+    renderer.domElement.addEventListener('pointerup', finishDragging);
+    renderer.domElement.addEventListener('pointercancel', finishDragging);
 
     function createFallbackCart() {
 
@@ -1034,6 +1272,9 @@
 
       }
 
+      mesh.userData.productType = type;
+      mesh.userData.collectible = true;
+
       const body = new CANNON.Body({ mass: 2, material: objectMat, position: new CANNON.Vec3(pos.x, pos.y, pos.z), linearDamping: .08, allowSleep: true, sleepSpeedLimit: .15, sleepTimeLimit: .8 });
 
       body.addShape(shape); world.addBody(body); synced.push({ mesh, body }); dynamicBodies.push(body); specialItems.push({ type, mesh, body });
@@ -1276,6 +1517,10 @@
       cartGroup.rotation.set(0, currentHeading, 0);
 
       for (const item of synced) {
+
+        if (draggedItem && item.body === draggedItem.body) {
+          continue;
+        }
         // Produtos de prateleira só entram na física dinâmica quando o carrinho chega perto.
         if (item.body.userData && item.body.userData.promotable && item.body.mass === 0 && cartBody.position.distanceTo(item.body.position) < 2.8) {
           promoteBody(item.body);
@@ -1311,6 +1556,10 @@
 
         const item = specialItems[i];
 
+        if (draggedItem && item.body === draggedItem.body) {
+          continue;
+        }
+
         if (cartBody.position.distanceTo(item.body.position) < 2.05) {
 
           if (item.type === 'banana') { showStatus('ESCORREGOU!', '#ffea00'); currentHeading += Math.PI; cartBody.velocity.x += Math.sin(currentHeading) * 4; cartBody.velocity.z += Math.cos(currentHeading) * 4; }
@@ -1342,6 +1591,8 @@
       renderer.render(scene, camera);
 
     }
+
+    updateMission();
 
     camera.position.set(0, 7, 20); camera.lookAt(0, 0, 0); animate();
 
