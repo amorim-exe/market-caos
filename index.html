@@ -4,33 +4,125 @@
 
 <head>
 
-<meta charset="UTF-8">
+  <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Caos no Supermercado 🛒</title>
+  <title>Caos no Supermercado 🛒</title>
 
-<style>
+  <style>
+    * {
+      box-sizing: border-box
+    }
 
-  *{box-sizing:border-box} body{margin:0;overflow:hidden;font-family:Inter,Segoe UI,sans-serif;background:#87ceeb;user-select:none}
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Inter, Segoe UI, sans-serif;
+      background: #87ceeb;
+      user-select: none
+    }
 
-  canvas{display:block;width:100vw;height:100vh}
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh
+    }
 
-  #ui{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:18px;color:white;text-shadow:1px 2px 3px #000}
+    #ui {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 18px;
+      color: white;
+      text-shadow: 1px 2px 3px #000
+    }
 
-  header{text-align:center} h1{margin:0;color:#ffea00;font-size:clamp(1.4rem,4vw,3rem);letter-spacing:2px} .subtitle{margin:5px}
+    header {
+      text-align: center
+    }
 
-  .bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}.panel{background:#000b;border:2px solid white;border-radius:12px;padding:12px 18px;max-width:48%}
+    h1 {
+      margin: 0;
+      color: #ffea00;
+      font-size: clamp(1.4rem, 4vw, 3rem);
+      letter-spacing: 2px
+    }
 
-  .panel h3{margin:0 0 8px;color:#4ade80}.panel p,.panel li{margin:5px 0;font-size:clamp(.8rem,1.5vw,1rem)}ul{padding-left:18px;margin:0}
+    .subtitle {
+      margin: 5px
+    }
 
-  #status{position:absolute;top:40%;left:50%;transform:translate(-50%,-50%);font-size:clamp(2rem,6vw,4rem);font-weight:bold;color:#ff3366;text-shadow:3px 3px #000;opacity:0;pointer-events:none;transition:opacity .15s}
+    .bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px
+    }
 
-  @media(max-width:650px){#ui{padding:10px}.bottom{align-items:flex-start;flex-direction:column}.panel{max-width:100%;padding:8px 12px}.legend{display:none}}
+    .panel {
+      background: #000b;
+      border: 2px solid white;
+      border-radius: 12px;
+      padding: 12px 18px;
+      max-width: 48%
+    }
 
-</style>
+    .panel h3 {
+      margin: 0 0 8px;
+      color: #4ade80
+    }
 
-<script type="importmap">
+    .panel p,
+    .panel li {
+      margin: 5px 0;
+      font-size: clamp(.8rem, 1.5vw, 1rem)
+    }
+
+    ul {
+      padding-left: 18px;
+      margin: 0
+    }
+
+    #status {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: clamp(2rem, 6vw, 4rem);
+      font-weight: bold;
+      color: #ff3366;
+      text-shadow: 3px 3px #000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s
+    }
+
+    @media(max-width:650px) {
+      #ui {
+        padding: 10px
+      }
+
+      .bottom {
+        align-items: flex-start;
+        flex-direction: column
+      }
+
+      .panel {
+        max-width: 100%;
+        padding: 8px 12px
+      }
+
+      .legend {
+        display: none
+      }
+    }
+  </style>
+
+  <script type="importmap">
 
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","cannon-es":"https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
 
@@ -40,1141 +132,1158 @@
 
 <body>
 
-<div id="ui">
+  <div id="ui">
 
-  <header><h1>CAOS NO SUPERMERCADO 🛒</h1><p class="subtitle">Destrua tudo! Física maluca ativada.</p></header>
+    <header>
+      <h1>CAOS NO SUPERMERCADO 🛒</h1>
+      <p class="subtitle">Destrua tudo! Física maluca ativada.</p>
+    </header>
 
-  <div class="bottom">
+    <div class="bottom">
 
-    <div class="panel"><h3>CONTROLES</h3><ul>
+      <div class="panel">
+        <h3>CONTROLES</h3>
+        <ul>
 
-      <li><b>W / ↑</b> acelerar</li><li><b>S / ↓</b> ré</li><li><b>A / ←</b> virar à esquerda</li><li><b>D / →</b> virar à direita</li><li><b>Espaço</b> pular</li>
+          <li><b>W / ↑</b> acelerar</li>
+          <li><b>S / ↓</b> ré</li>
+          <li><b>A / ←</b> virar à esquerda</li>
+          <li><b>D / →</b> virar à direita</li>
+          <li><b>Espaço</b> pular</li>
 
-    </ul></div>
+        </ul>
+      </div>
 
-    <div class="panel legend"><h3>ITENS MALUCOS</h3><p>🍌 Banana: escorregão!</p><p>🥤 Refri: super turbo!</p><p>🍉 Melancia: explosão!</p></div>
+      <div class="panel legend">
+        <h3>ITENS MALUCOS</h3>
+        <p>🍌 Banana: escorregão!</p>
+        <p>🥤 Refri: super turbo!</p>
+        <p>🍉 Melancia: explosão!</p>
+      </div>
+
+    </div>
 
   </div>
 
-</div>
+  <div id="status">TURBO!</div>
 
-<div id="status">TURBO!</div>
+  <script type="module">
 
-<script type="module">
+    import * as THREE from 'three';
 
-import * as THREE from 'three';
+    import * as CANNON from 'cannon-es';
 
-import * as CANNON from 'cannon-es';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
-import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 
-import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
 
 
+    const scene = new THREE.Scene();
 
-const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#87CEEB');
 
-scene.background = new THREE.Color('#87CEEB');
+    scene.fog = new THREE.Fog('#87CEEB', 48, 155);
 
-scene.fog = new THREE.Fog('#87CEEB', 48, 155);
+    const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, .1, 250);
 
-const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, .1, 250);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
 
-const renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setSize(innerWidth, innerHeight);
 
-renderer.setSize(innerWidth,innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
 
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+    renderer.shadowMap.enabled = true;
 
-renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
 
-renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-renderer.outputColorSpace = THREE.SRGBColorSpace;
+    document.body.appendChild(renderer.domElement);
 
-document.body.appendChild(renderer.domElement);
 
 
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x667788, 1.35));
 
-scene.add(new THREE.HemisphereLight(0xffffff,0x667788,1.35));
+    const sun = new THREE.DirectionalLight(0xffffff, 2.0);
 
-const sun = new THREE.DirectionalLight(0xffffff,2.0);
+    sun.position.set(30, 50, 25); sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
 
-sun.position.set(30,50,25); sun.castShadow=true; sun.shadow.mapSize.set(1024,1024);
+    sun.shadow.camera.left = -60; sun.shadow.camera.right = 60; sun.shadow.camera.top = 60; sun.shadow.camera.bottom = -60;
 
-sun.shadow.camera.left=-60;sun.shadow.camera.right=60;sun.shadow.camera.top=60;sun.shadow.camera.bottom=-60;
+    scene.add(sun);
 
-scene.add(sun);
 
 
+    const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -9.8, 0) });
 
-const world = new CANNON.World({gravity:new CANNON.Vec3(0,-9.8,0)});
+    world.broadphase = new CANNON.SAPBroadphase(world);
 
-world.broadphase = new CANNON.SAPBroadphase(world);
+    world.allowSleep = false;
 
-world.allowSleep = false;
+    const groundMat = new CANNON.Material('ground');
 
-const groundMat = new CANNON.Material('ground');
+    const cartMat = new CANNON.Material('cart');
 
-const cartMat = new CANNON.Material('cart');
+    const objectMat = new CANNON.Material('object');
 
-const objectMat = new CANNON.Material('object');
+    world.addContactMaterial(new CANNON.ContactMaterial(groundMat, cartMat, { friction: .35, restitution: 0 }));
 
-world.addContactMaterial(new CANNON.ContactMaterial(groundMat,cartMat,{friction:.35,restitution:0}));
+    world.addContactMaterial(new CANNON.ContactMaterial(cartMat, objectMat, { friction: .45, restitution: .2 }));
 
-world.addContactMaterial(new CANNON.ContactMaterial(cartMat,objectMat,{friction:.45,restitution:.2}));
+    world.addContactMaterial(new CANNON.ContactMaterial(groundMat, objectMat, { friction: .65, restitution: .12 }));
 
-world.addContactMaterial(new CANNON.ContactMaterial(groundMat,objectMat,{friction:.65,restitution:.12}));
 
 
+    const synced = [];
 
-const synced=[];
+    const dynamicBodies = [];
 
-const dynamicBodies=[];
+    const specialItems = [];
 
-const specialItems=[];
+    const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false, ' ': false };
 
-const keys={w:false,a:false,s:false,d:false,ArrowUp:false,ArrowDown:false,ArrowLeft:false,ArrowRight:false,' ':false};
+    const statusEl = document.querySelector('#status');
 
-const statusEl=document.querySelector('#status');
+    let statusTimer;
 
-let statusTimer;
+    function showStatus(text, color = '#ff3366') {
 
-function showStatus(text,color='#ff3366'){
+      statusEl.textContent = text; statusEl.style.color = color; statusEl.style.opacity = 1;
 
-  statusEl.textContent=text;statusEl.style.color=color;statusEl.style.opacity=1;
+      clearTimeout(statusTimer); statusTimer = setTimeout(() => statusEl.style.opacity = 0, 1300);
 
-  clearTimeout(statusTimer);statusTimer=setTimeout(()=>statusEl.style.opacity=0,1300);
+    }
 
-}
+    function addBox(size, pos, mass, color, material = objectMat) {
 
-function addBox(size,pos,mass,color,material=objectMat){
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(size.x, size.y, size.z), new THREE.MeshStandardMaterial({ color, roughness: .8 }));
 
-  const mesh=new THREE.Mesh(new THREE.BoxGeometry(size.x,size.y,size.z),new THREE.MeshStandardMaterial({color,roughness:.8}));
+      mesh.castShadow = mass > 0; mesh.receiveShadow = true; mesh.position.set(pos.x, pos.y, pos.z); scene.add(mesh);
 
-  mesh.castShadow=mass>0;mesh.receiveShadow=true;mesh.position.set(pos.x,pos.y,pos.z);scene.add(mesh);
+      const body = new CANNON.Body({ mass, material, position: new CANNON.Vec3(pos.x, pos.y, pos.z), linearDamping: mass ? 0.08 : 0, angularDamping: mass ? 0.12 : 0 });
 
-  const body=new CANNON.Body({mass,material,position:new CANNON.Vec3(pos.x,pos.y,pos.z),linearDamping:mass?0.08:0,angularDamping:mass?0.12:0});
+      body.addShape(new CANNON.Box(new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2))); world.addBody(body);
 
-  body.addShape(new CANNON.Box(new CANNON.Vec3(size.x/2,size.y/2,size.z/2)));world.addBody(body);
+      if (mass > 0) { synced.push({ mesh, body }); dynamicBodies.push(body); }
 
-  if(mass>0){synced.push({mesh,body});dynamicBodies.push(body);}
+      return { mesh, body };
 
-  return {mesh,body};
+    }
 
-}
 
 
+    // Piso visual e físico
 
-// Piso visual e físico
+    const mtlLoader = new MTLLoader();
 
-const mtlLoader=new MTLLoader();
+    mtlLoader.load('./models/materials.mtl', materials => {
 
-mtlLoader.load('./models/materials.mtl', materials=>{
+      materials.preload();
 
-  materials.preload();
+      const objLoader = new OBJLoader();
 
-  const objLoader=new OBJLoader();
+      objLoader.setMaterials(materials);
 
-  objLoader.setMaterials(materials);
+      objLoader.load('./models/floor.obj', originalObj => {
 
-  objLoader.load('./models/floor.obj', originalObj=>{
+        originalObj.receiveShadow = true;
 
-    originalObj.receiveShadow=true;
+        originalObj.traverse(child => {
 
-    originalObj.traverse(child=>{
+          if (child.isMesh) {
 
-      if(child.isMesh){
+            child.castShadow = false;
 
-        child.castShadow=false;
+            child.receiveShadow = true;
 
-        child.receiveShadow=true;
+          }
+
+        });
+
+
+
+        // 49 tiles texturizados cobrem o mapa sem criar as 961 cópias da versão pesada.
+        const floorBox = new THREE.Box3().setFromObject(originalObj);
+        const floorSize = floorBox.getSize(new THREE.Vector3());
+        const floorCenter = floorBox.getCenter(new THREE.Vector3());
+        const floorW = Math.max(floorSize.x, 0.1);
+        const floorD = Math.max(floorSize.z, 0.1);
+        // Cada cópia é centralizada pelo bounding box real do OBJ. O espaçamento
+        // é menor que a dimensão da peça para criar uma sobreposição e eliminar frestas.
+        // Piso-base contínuo por baixo dos tiles: mesmo que o OBJ tenha bordas irregulares,
+        // nenhuma fresta deixa aparecer o fundo. Os tiles texturizados continuam por cima.
+        const floorBase = new THREE.Mesh(
+          new THREE.PlaneGeometry(120, 120),
+          new THREE.MeshStandardMaterial({ color: 0x777b80, roughness: 0.95 })
+        );
+        floorBase.rotation.x = -Math.PI / 2;
+        floorBase.position.y = 0;
+        floorBase.receiveShadow = true;
+        scene.add(floorBase);
+
+        const tileSize = 16.1;
+        const tileSpacing = 15.35;
+        const scaleX = tileSize / floorW;
+        const scaleZ = tileSize / floorD;
+        for (let x = -3; x <= 3; x++) for (let z = -3; z <= 3; z++) {
+          const tile = originalObj.clone(true);
+          tile.scale.set(scaleX, 1, scaleZ);
+          tile.position.set(
+            x * tileSpacing - floorCenter.x * scaleX,
+            -floorBox.min.y,
+            z * tileSpacing - floorCenter.z * scaleZ
+          );
+          tile.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = true; } });
+          scene.add(tile);
+        }
+
+      }, undefined, err => console.error('Erro ao carregar floor.obj', err));
+
+    }, undefined, err => console.error('Erro ao carregar materials.mtl', err));
+
+
+
+    const floorBody = new CANNON.Body({ mass: 0, material: groundMat }); floorBody.addShape(new CANNON.Plane()); floorBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0); world.addBody(floorBody);
+
+
+
+    // Limites do mapa
+
+    function addBound(x, z, sx, sz) { const b = new CANNON.Body({ mass: 0, position: new CANNON.Vec3(x, 5, z) }); b.addShape(new CANNON.Box(new CANNON.Vec3(sx / 2, 5, sz / 2))); world.addBody(b); }
+
+    const bounds = 50, wall = 2;
+
+    addBound(0, bounds, bounds * 2, wall); addBound(0, -bounds, bounds * 2, wall); addBound(bounds, 0, wall, bounds * 2); addBound(-bounds, 0, wall, bounds * 2);
+
+
+
+    // Prateleiras e produtos
+
+    const shelfColors = [0xdddddd, 0xc4c4c4];
+
+
+
+    function spawnShelfProduct(pos, yLevel) {
+      const shelfModels = [beerModel, canned1Model, cerealModel, cereal2Model, hotdogModel, milkModel].filter(Boolean);
+      const palette = [0xe84c3d, 0xf4c542, 0x3da5d9, 0x54b86a, 0x9b6ad6, 0xf08a36, 0xe9e9e9];
+      const useModel = shelfModels.length > 0 && Math.random() < 0.76;
+      let mesh;
+
+      if (useModel) {
+        const model = shelfModels[Math.floor(Math.random() * shelfModels.length)];
+        mesh = model.clone(true);
+        // Normaliza o modelo uma vez por cópia e dá tamanho de produto de prateleira.
+        fitModel(mesh);
+        const offset = mesh.position.clone();
+        mesh.scale.multiplyScalar(0.48);
+        mesh.position.set(pos.x + offset.x * 0.48, yLevel + offset.y * 0.48, pos.z + offset.z * 0.48);
+        mesh.rotation.y = Math.random() * Math.PI * 2;
+      } else {
+        // Embalagens 3D simples para preencher a prateleira enquanto os GLBs carregam.
+        const color = palette[Math.floor(Math.random() * palette.length)];
+        const isCan = Math.random() < 0.38;
+        const geo = isCan ? new THREE.CylinderGeometry(0.19, 0.19, 0.62, 10) : new THREE.BoxGeometry(0.42, 0.62, 0.32);
+        const material = new THREE.MeshStandardMaterial({ color, roughness: 0.68, metalness: isCan ? 0.18 : 0.02 });
+        mesh = new THREE.Mesh(geo, material);
+        mesh.position.set(pos.x, yLevel + 0.31, pos.z);
+        if (isCan) mesh.rotation.z = 0;
+        else mesh.rotation.y = Math.random() * 0.15 - 0.075;
+      }
+
+      mesh.traverse ? mesh.traverse(child => { if (child.isMesh) { child.castShadow = false; child.receiveShadow = false; } }) : (mesh.castShadow = false, mesh.receiveShadow = false);
+      scene.add(mesh);
+
+      // Só uma parte dos produtos usa física completa. O restante mantém as prateleiras cheias
+      // sem criar centenas de corpos dinâmicos que derrubam o FPS.
+
+      const body = new CANNON.Body({
+        mass: 0,
+        material: objectMat,
+        position: new CANNON.Vec3(
+          mesh.position.x,
+          mesh.position.y,
+          mesh.position.z
+        ),
+        allowSleep: true,
+        sleepSpeedLimit: 0.15,
+        sleepTimeLimit: 0.8,
+        linearDamping: 0.08,
+        angularDamping: 0.15
+      });
+
+      // Colisão simples para cada produto.
+      body.addShape(
+        new CANNON.Box(new CANNON.Vec3(0.25, 0.3, 0.22))
+      );
+
+      body.userData = { promotable: true };
+
+      world.addBody(body);
+      synced.push({ mesh, body });
+
+      if (!window.__shelfBodies) {
+        window.__shelfBodies = [];
+      }
+
+      window.__shelfBodies.push(body);
+
+    }
+
+
+    function spawnShelves() {
+
+      for (let i = -3; i <= 3; i++) {
+
+        if (i === 0) continue; const x = i * 14;
+
+        addBox({ x: 4, y: .5, z: 50 }, { x, y: .25, z: 0 }, 0, shelfColors[Math.abs(i) % 2], groundMat);
+
+        addBox({ x: 4, y: .2, z: 50 }, { x, y: 3.3, z: 0 }, 0, shelfColors[Math.abs(i) % 2], groundMat);
+
+        // Adicionar colisão vertical para o corpo das prateleiras
+        // const shelfBody=new CANNON.Body({mass:0,material:groundMat,position:new CANNON.Vec3(x,2,0)});
+        // shelfBody.addShape(
+        //   new CANNON.Box(new CANNON.Vec3(2.0, 2.5, 25))
+        // );    
+
+        // world.addBody(shelfBody);
+
+        for (let z = -24; z <= 24; z += 1.25) {
+
+          // yLevel é a superfície da prateleira, não o centro do produto.
+          spawnShelfProduct({ x: x + (Math.random() * 0.9 - .45), z }, 0.5);
+
+          spawnShelfProduct({ x: x + (Math.random() * 0.9 - .45), z }, 3.1);
+
+        }
 
       }
 
-    });
-
-
-
-    // 49 tiles texturizados cobrem o mapa sem criar as 961 cópias da versão pesada.
-    const floorBox = new THREE.Box3().setFromObject(originalObj);
-    const floorSize = floorBox.getSize(new THREE.Vector3());
-    const floorCenter = floorBox.getCenter(new THREE.Vector3());
-    const floorW = Math.max(floorSize.x, 0.1);
-    const floorD = Math.max(floorSize.z, 0.1);
-    // Cada cópia é centralizada pelo bounding box real do OBJ. O espaçamento
-    // é menor que a dimensão da peça para criar uma sobreposição e eliminar frestas.
-    // Piso-base contínuo por baixo dos tiles: mesmo que o OBJ tenha bordas irregulares,
-    // nenhuma fresta deixa aparecer o fundo. Os tiles texturizados continuam por cima.
-    const floorBase = new THREE.Mesh(
-      new THREE.PlaneGeometry(120,120),
-      new THREE.MeshStandardMaterial({color:0x777b80, roughness:0.95})
-    );
-    floorBase.rotation.x = -Math.PI/2;
-    floorBase.position.y = 0;
-    floorBase.receiveShadow = true;
-    scene.add(floorBase);
-
-    const tileSize = 16.1;
-    const tileSpacing = 15.35;
-    const scaleX = tileSize / floorW;
-    const scaleZ = tileSize / floorD;
-    for(let x=-3;x<=3;x++) for(let z=-3;z<=3;z++){
-      const tile = originalObj.clone(true);
-      tile.scale.set(scaleX, 1, scaleZ);
-      tile.position.set(
-        x*tileSpacing - floorCenter.x*scaleX,
-        -floorBox.min.y,
-        z*tileSpacing - floorCenter.z*scaleZ
-      );
-      tile.traverse(child=>{if(child.isMesh){child.castShadow=false;child.receiveShadow=true;}});
-      scene.add(tile);
     }
 
-  }, undefined, err=>console.error('Erro ao carregar floor.obj',err));
-
-}, undefined, err=>console.error('Erro ao carregar materials.mtl',err));
 
 
 
-const floorBody=new CANNON.Body({mass:0,material:groundMat});floorBody.addShape(new CANNON.Plane());floorBody.quaternion.setFromEuler(-Math.PI/2,0,0);world.addBody(floorBody);
+    function spawnWallsAndDecorations() {
+      if (!wallModel) return;
 
+      const mapMin = -50;
+      const mapMax = 50;
+      const wallY = 0;
+      const wallHeight = 10;
+      const wallThickness = 0.1;
 
+      // Cria um modelo normalizado, mantendo a proporção original.
+      const template = wallModel.clone(true);
+      template.updateMatrixWorld(true);
 
-// Limites do mapa
+      const originalBox = new THREE.Box3().setFromObject(template);
+      const originalSize = originalBox.getSize(new THREE.Vector3());
 
-function addBound(x,z,sx,sz){const b=new CANNON.Body({mass:0,position:new CANNON.Vec3(x,5,z)});b.addShape(new CANNON.Box(new CANNON.Vec3(sx/2,5,sz/2)));world.addBody(b);}
-
-const bounds=50, wall=2;
-
-addBound(0,bounds,bounds*2,wall);addBound(0,-bounds,bounds*2,wall);addBound(bounds,0,wall,bounds*2);addBound(-bounds,0,wall,bounds*2);
-
-
-
-// Prateleiras e produtos
-
-const shelfColors=[0xdddddd,0xc4c4c4];
-
-
-
-function spawnShelfProduct(pos,yLevel){
-  const shelfModels=[beerModel,canned1Model,cerealModel,cereal2Model,hotdogModel,milkModel].filter(Boolean);
-  const palette=[0xe84c3d,0xf4c542,0x3da5d9,0x54b86a,0x9b6ad6,0xf08a36,0xe9e9e9];
-  const useModel=shelfModels.length>0 && Math.random()<0.76;
-  let mesh;
-
-  if(useModel){
-    const model=shelfModels[Math.floor(Math.random()*shelfModels.length)];
-    mesh=model.clone(true);
-    // Normaliza o modelo uma vez por cópia e dá tamanho de produto de prateleira.
-    fitModel(mesh);
-    const offset=mesh.position.clone();
-    mesh.scale.multiplyScalar(0.48);
-    mesh.position.set(pos.x+offset.x*0.48,yLevel+offset.y*0.48,pos.z+offset.z*0.48);
-    mesh.rotation.y=Math.random()*Math.PI*2;
-  } else {
-    // Embalagens 3D simples para preencher a prateleira enquanto os GLBs carregam.
-    const color=palette[Math.floor(Math.random()*palette.length)];
-    const isCan=Math.random()<0.38;
-    const geo=isCan ? new THREE.CylinderGeometry(0.19,0.19,0.62,10) : new THREE.BoxGeometry(0.42,0.62,0.32);
-    const material=new THREE.MeshStandardMaterial({color,roughness:0.68,metalness:isCan?0.18:0.02});
-    mesh=new THREE.Mesh(geo,material);
-    mesh.position.set(pos.x,yLevel+0.31,pos.z);
-    if(isCan) mesh.rotation.z=0;
-    else mesh.rotation.y=Math.random()*0.15-0.075;
-  }
-
-  mesh.traverse ? mesh.traverse(child=>{if(child.isMesh){child.castShadow=false;child.receiveShadow=false;}}) : (mesh.castShadow=false,mesh.receiveShadow=false);
-  scene.add(mesh);
-
-  // Só uma parte dos produtos usa física completa. O restante mantém as prateleiras cheias
-  // sem criar centenas de corpos dinâmicos que derrubam o FPS.
-  
-const body = new CANNON.Body({
-  mass: 0,
-  material: objectMat,
-  position: new CANNON.Vec3(
-    mesh.position.x,
-    mesh.position.y,
-    mesh.position.z
-  ),
-  allowSleep: true,
-  sleepSpeedLimit: 0.15,
-  sleepTimeLimit: 0.8,
-  linearDamping: 0.08,
-  angularDamping: 0.15
-});
-
-// Colisão simples para cada produto.
-body.addShape(
-  new CANNON.Box(new CANNON.Vec3(0.25, 0.3, 0.22))
-);
-
-body.userData = { promotable: true };
-
-world.addBody(body);
-synced.push({ mesh, body });
-
-if (!window.__shelfBodies) {
-  window.__shelfBodies = [];
-}
-
-window.__shelfBodies.push(body);
-
-}
-
-
-function spawnShelves(){
-
-  for(let i=-3;i<=3;i++){
-
-    if(i===0)continue;const x=i*14;
-
-    addBox({x:4,y:.5,z:50},{x,y:.25,z:0},0,shelfColors[Math.abs(i)%2],groundMat);
-
-addBox({x:4,y:.2,z:50},{x,y:3.3,z:0},0,shelfColors[Math.abs(i)%2],groundMat);    // Adicionar colisão vertical para o corpo das prateleiras
-    // const shelfBody=new CANNON.Body({mass:0,material:groundMat,position:new CANNON.Vec3(x,2,0)});
-    // shelfBody.addShape(
-    //   new CANNON.Box(new CANNON.Vec3(2.0, 2.5, 25))
-    // );    
-    
-    // world.addBody(shelfBody);
-
-    for(let z=-24;z<=24;z+=1.25){
-
-      // yLevel é a superfície da prateleira, não o centro do produto.
-      spawnShelfProduct({x:x+(Math.random()*0.9-.45),z},0.5);
-
-      spawnShelfProduct({x:x+(Math.random()*0.9-.45),z},3.1);
-
-    }
-
-  }
-
-}
-
-
-
-
-function spawnWallsAndDecorations() {
-  if (!wallModel) return;
-
-  const mapMin = -50;
-  const mapMax = 50;
-  const wallY = 0;
-  const wallHeight = 10;
-  const wallThickness = 0.1;
-
-  // Cria um modelo normalizado, mantendo a proporção original.
-  const template = wallModel.clone(true);
-  template.updateMatrixWorld(true);
-
-  const originalBox = new THREE.Box3().setFromObject(template);
-  const originalSize = originalBox.getSize(new THREE.Vector3());
-
-  if (
-    originalSize.x < 0.001 ||
-    originalSize.y < 0.001 ||
-    originalSize.z < 0.001
-  ) {
-    console.error("O modelo wall.glb não possui dimensões válidas.");
-    return;
-  }
-
-  // O eixo X será o comprimento da parede.
-  // A altura e a espessura são ajustadas pelas dimensões reais.
-  const length = Math.max(originalSize.x, originalSize.z);
-  const depth = Math.min(originalSize.x, originalSize.z);
-
-  // Ajusta cada segmento para ter 6 unidades de comprimento,
-  // altura de 10 e espessura de 1.
-  const segmentLength = 6;
-  const scale = new THREE.Vector3(
-    segmentLength / length,
-    wallHeight / originalSize.y,
-    wallThickness / depth
-  );
-
-  // O modelo pode ter sido exportado deitado.
-  // Esta função assume que a altura original está no eixo Y.
-  const createWallSegment = (x, z, rotationY, targetLength) => {
-    const wall = wallModel.clone(true);
-
-    const targetScale = new THREE.Vector3(
-      targetLength / length,
-      wallHeight / originalSize.y,
-      wallThickness / depth
-    );
-
-    wall.scale.copy(targetScale);
-    wall.rotation.set(0, rotationY, 0);
-
-    // Centraliza o modelo no segmento e calcula sua base.
-    wall.position.set(x, wallY, z);
-    wall.updateMatrixWorld(true);
-
-    let box = new THREE.Box3().setFromObject(wall);
-    wall.position.y -= box.min.y - wallY;
-    wall.updateMatrixWorld(true);
-
-    box = new THREE.Box3().setFromObject(wall);
-
-    wall.traverse(child => {
-      if (child.isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
+      if (
+        originalSize.x < 0.001 ||
+        originalSize.y < 0.001 ||
+        originalSize.z < 0.001
+      ) {
+        console.error("O modelo wall.glb não possui dimensões válidas.");
+        return;
       }
-    });
 
-    scene.add(wall);
-  };
+      // O eixo X será o comprimento da parede.
+      // A altura e a espessura são ajustadas pelas dimensões reais.
+      const length = Math.max(originalSize.x, originalSize.z);
+      const depth = Math.min(originalSize.x, originalSize.z);
 
-  // Paredes horizontais: os segmentos se sobrepõem ligeiramente
-  // para evitar frestas causadas por pequenas diferenças de escala.
-  const overlap = 0.08;
-  const step = segmentLength - overlap;
-
-  for (let x = mapMin; x < mapMax; x += step) {
-    const len = Math.min(segmentLength, mapMax - x + overlap);
-    const centerX = x + len / 2;
-
-    createWallSegment(centerX, mapMin, 0, len);
-    createWallSegment(centerX, mapMax, Math.PI, len);
-  }
-
-  // Paredes verticais, incluindo as extremidades.
-  for (let z = mapMin; z < mapMax; z += step) {
-    const len = Math.min(segmentLength, mapMax - z + overlap);
-    const centerZ = z + len / 2;
-
-    createWallSegment(mapMin, centerZ, Math.PI / 2, len);
-    createWallSegment(mapMax, centerZ, -Math.PI / 2, len);
-  }
-
-  // Fecha os quatro cantos visualmente.
-  const cornerMaterial = new THREE.MeshStandardMaterial({
-    color: 0xd0d0c8,
-    roughness: 0.9
-  });
-
-  // Fecha os cantos com peças maiores, sobrepostas às duas paredes.
-  const cornerSize = 4.8;
-
-  for (const x of [mapMin, mapMax]) {
-    for (const z of [mapMin, mapMax]) {
-      const corner = new THREE.Mesh(
-        new THREE.BoxGeometry(cornerSize, wallHeight, cornerSize),
-        cornerMaterial
+      // Ajusta cada segmento para ter 6 unidades de comprimento,
+      // altura de 10 e espessura de 1.
+      const segmentLength = 6;
+      const scale = new THREE.Vector3(
+        segmentLength / length,
+        wallHeight / originalSize.y,
+        wallThickness / depth
       );
 
-      corner.position.set(
-        x,
-        wallY + wallHeight / 2,
-        z
-      );
+      // O modelo pode ter sido exportado deitado.
+      // Esta função assume que a altura original está no eixo Y.
+      const createWallSegment = (x, z, rotationY, targetLength) => {
+        const wall = wallModel.clone(true);
 
-      corner.castShadow = true;
-      corner.receiveShadow = true;
-      scene.add(corner);
+        const targetScale = new THREE.Vector3(
+          targetLength / length,
+          wallHeight / originalSize.y,
+          wallThickness / depth
+        );
+
+        wall.scale.copy(targetScale);
+        wall.rotation.set(0, rotationY, 0);
+
+        // Centraliza o modelo no segmento e calcula sua base.
+        wall.position.set(x, wallY, z);
+        wall.updateMatrixWorld(true);
+
+        let box = new THREE.Box3().setFromObject(wall);
+        wall.position.y -= box.min.y - wallY;
+        wall.updateMatrixWorld(true);
+
+        box = new THREE.Box3().setFromObject(wall);
+
+        wall.traverse(child => {
+          if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+          }
+        });
+
+        scene.add(wall);
+      };
+
+      // Paredes horizontais: os segmentos se sobrepõem ligeiramente
+      // para evitar frestas causadas por pequenas diferenças de escala.
+      const overlap = 0.08;
+      const step = segmentLength - overlap;
+
+      for (let x = mapMin; x < mapMax; x += step) {
+        const len = Math.min(segmentLength, mapMax - x + overlap);
+        const centerX = x + len / 2;
+
+        createWallSegment(centerX, mapMin, 0, len);
+        createWallSegment(centerX, mapMax, Math.PI, len);
+      }
+
+      // Paredes verticais, incluindo as extremidades.
+      for (let z = mapMin; z < mapMax; z += step) {
+        const len = Math.min(segmentLength, mapMax - z + overlap);
+        const centerZ = z + len / 2;
+
+        createWallSegment(mapMin, centerZ, Math.PI / 2, len);
+        createWallSegment(mapMax, centerZ, -Math.PI / 2, len);
+      }
+
+      // Fecha os quatro cantos visualmente.
+      const cornerMaterial = new THREE.MeshStandardMaterial({
+        color: 0xd0d0c8,
+        roughness: 0.9
+      });
+
+      // Fecha os cantos com peças maiores, sobrepostas às duas paredes.
+      const cornerSize = 4.8;
+
+      for (const x of [mapMin, mapMax]) {
+        for (const z of [mapMin, mapMax]) {
+          const corner = new THREE.Mesh(
+            new THREE.BoxGeometry(cornerSize, wallHeight, cornerSize),
+            cornerMaterial
+          );
+
+          corner.position.set(
+            x,
+            wallY + wallHeight / 2,
+            z
+          );
+
+          corner.castShadow = true;
+          corner.receiveShadow = true;
+          scene.add(corner);
+        }
+      }
+
+      // Colisões físicas contínuas, alinhadas com o perímetro visual.
+      const collisionMaterial = groundMat;
+
+      const addWallCollider = (x, z, sx, sz) => {
+        const body = new CANNON.Body({
+          mass: 0,
+          material: collisionMaterial,
+          position: new CANNON.Vec3(x, wallY + wallHeight / 2, z)
+        });
+
+        body.addShape(
+          new CANNON.Box(
+            new CANNON.Vec3(sx / 2, wallHeight / 2, sz / 2)
+          )
+        );
+
+        world.addBody(body);
+      };
+
+      addWallCollider(0, mapMin, 100, wallThickness);
+      addWallCollider(0, mapMax, 100, wallThickness);
+      addWallCollider(mapMin, 0, wallThickness, 100);
+      addWallCollider(mapMax, 0, wallThickness, 100);
     }
-  }
 
-  // Colisões físicas contínuas, alinhadas com o perímetro visual.
-  const collisionMaterial = groundMat;
 
-  const addWallCollider = (x, z, sx, sz) => {
-    const body = new CANNON.Body({
-      mass: 0,
-      material: collisionMaterial,
-      position: new CANNON.Vec3(x, wallY + wallHeight / 2, z)
+    const ramp = addBox({ x: 8, y: 1, z: 12 }, { x: 0, y: .2, z: -25 }, 0, 0xff9900, groundMat);
+
+    ramp.body.quaternion.setFromEuler(Math.PI / 8, 0, 0); ramp.mesh.quaternion.copy(ramp.body.quaternion);
+
+
+
+    // Jogador: corpo físico separado do modelo visual
+
+    const cartGroup = new THREE.Group(); scene.add(cartGroup);
+
+    const cartBody = new CANNON.Body({
+
+      mass: 35, material: cartMat, position: new CANNON.Vec3(0, 2, 10),
+
+      linearDamping: 0, angularDamping: .98,
+
+      sleepSpeedLimit: 0, sleepTimeLimit: 0, fixedRotation: true
+
     });
 
-    body.addShape(
-      new CANNON.Box(
-        new CANNON.Vec3(sx / 2, wallHeight / 2, sz / 2)
-      )
+    cartBody.addShape(new CANNON.Box(new CANNON.Vec3(.75, .55, 1.05)));
+
+    cartBody.updateMassProperties(); world.addBody(cartBody);
+
+    let currentHeading = 0;
+    let jumpActiveTime = 0;
+
+    let cartVisual = null;
+
+    const wheels = [];
+
+    function createFallbackCart() {
+
+      const group = new THREE.Group();
+
+      const metal = new THREE.MeshStandardMaterial({ color: 0xbec4ca, metalness: .65, roughness: .35 });
+
+      const dark = new THREE.MeshStandardMaterial({ color: 0x202020, roughness: .7 });
+
+      const basket = new THREE.Mesh(new THREE.BoxGeometry(1.45, .8, 1.65), metal); basket.position.y = 1.15; basket.castShadow = true; group.add(basket);
+
+      // barras para sugerir a cesta vazada
+
+      const barMat = new THREE.MeshStandardMaterial({ color: 0x7e858b, metalness: .7, roughness: .3 });
+
+      for (let y = .85; y <= 1.5; y += .22) {
+
+        for (const x of [-.68, .68]) {
+
+          const bar = new THREE.Mesh(new THREE.BoxGeometry(.045, .045, 1.55), barMat); bar.position.set(x, y, 0); group.add(bar);
+
+        }
+
+        for (const z of [-.78, .78]) {
+
+          const bar = new THREE.Mesh(new THREE.BoxGeometry(1.35, .045, .045), barMat); bar.position.set(0, y, z); group.add(bar);
+
+        }
+
+      }
+
+      const handle = new THREE.Mesh(new THREE.CylinderGeometry(.07, .07, 1.4, 12), new THREE.MeshStandardMaterial({ color: 0xe53935 }));
+
+      handle.rotation.z = Math.PI / 2; handle.position.set(0, 1.75, 1.15); group.add(handle);
+
+      for (const [x, z] of [[-.65, .72], [.65, .72], [-.65, -.72], [.65, -.72]]) {
+
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(.19, .19, .13, 16), dark); wheel.rotation.z = Math.PI / 2; wheel.position.set(x, .25, z); group.add(wheel); wheels.push(wheel);
+
+      }
+
+      return group;
+
+    }
+
+    function fitModel(root) {
+
+      // Ajuste uniforme para o modelo caber no espaço visual do jogador.
+
+      root.updateMatrixWorld(true);
+
+      const box = new THREE.Box3().setFromObject(root);
+
+      const size = box.getSize(new THREE.Vector3());
+
+      const maxDim = Math.max(size.x, size.y, size.z);
+
+      if (!Number.isFinite(maxDim) || maxDim <= 0) return;
+
+      root.scale.setScalar(3.0 / maxDim);
+
+      root.updateMatrixWorld(true);
+
+      const scaledBox = new THREE.Box3().setFromObject(root);
+
+      const center = scaledBox.getCenter(new THREE.Vector3());
+
+      root.position.x -= center.x;
+
+      root.position.z -= center.z;
+
+      root.position.y -= scaledBox.min.y;
+
+    }
+
+    function setCartModel(root) {
+
+      if (cartVisual) cartGroup.remove(cartVisual);
+
+      wheels.length = 0;
+
+      fitModel(root);
+
+      cartVisual = root;
+
+      cartGroup.add(root);
+
+      // O GLB pode ter sido exportado com a frente apontando para +Z.
+
+      // Se necessário, altere a rotação abaixo para Math.PI.
+
+      root.rotation.y = 0;
+
+    }
+
+    const gltfLoader = new GLTFLoader();
+
+    gltfLoader.load(
+
+      './models/cart.glb',
+
+      gltf => setCartModel(gltf.scene),
+
+      undefined,
+
+      error => console.error('Não foi possível carregar ./models/cart.glb. Confirme o caminho e execute pelo Live Server.', error)
+
     );
 
-    world.addBody(body);
-  };
-
-  addWallCollider(0, mapMin, 100, wallThickness);
-  addWallCollider(0, mapMax, 100, wallThickness);
-  addWallCollider(mapMin, 0, wallThickness, 100);
-  addWallCollider(mapMax, 0, wallThickness, 100);
-}
 
 
-const ramp=addBox({x:8,y:1,z:12},{x:0,y:.2,z:-25},0,0xff9900,groundMat);
+    // Carregar modelos de itens especiais e prateleiras
 
-ramp.body.quaternion.setFromEuler(Math.PI/8,0,0);ramp.mesh.quaternion.copy(ramp.body.quaternion);
+    let bananaModel = null, watermelonModel = null, sodaModel = null;
+
+    let beerModel = null, canned1Model = null, cerealModel = null, cereal2Model = null, hotdogModel = null, milkModel = null;
+
+    let wallModel = null, quadro1Model = null, quadro2Model = null;
+
+    let modelsLoaded = { banana: false, watermelon: false, soda: false, beer: false, canned1: false, cereal: false, cereal2: false, hotdog: false, milk: false, wall: false, quadro1: false, quadro2: false };
 
 
 
-// Jogador: corpo físico separado do modelo visual
+    function checkModelsAndSpawn() {
 
-const cartGroup=new THREE.Group();scene.add(cartGroup);
+      if (modelsLoaded.banana && modelsLoaded.watermelon && modelsLoaded.soda &&
 
-const cartBody=new CANNON.Body({
+        modelsLoaded.beer && modelsLoaded.canned1 && modelsLoaded.cereal &&
 
-  mass:35,material:cartMat,position:new CANNON.Vec3(0,2,10),
+        modelsLoaded.cereal2 && modelsLoaded.hotdog && modelsLoaded.milk &&
 
-  linearDamping:0,angularDamping:.98,
+        modelsLoaded.wall && modelsLoaded.quadro1 && modelsLoaded.quadro2) {
 
-  sleepSpeedLimit:0,sleepTimeLimit:0,fixedRotation:true
+        // Spawnar prateleiras com produtos
 
-});
+        spawnShelves();
 
-cartBody.addShape(new CANNON.Box(new CANNON.Vec3(.75,.55,1.05)));
+        // Spawnar paredes e quadros
 
-cartBody.updateMassProperties();world.addBody(cartBody);
+        spawnWallsAndDecorations();
 
-let currentHeading=0;
-let jumpActiveTime=0;
+        // Spawnar itens especiais
 
-let cartVisual=null;
+        for (let i = 0; i < 12; i++)spawnSpecialItem('banana', { x: Math.random() * 50 - 25, y: 1, z: Math.random() * 50 - 25 });
 
-const wheels=[];
+        for (let i = 0; i < 8; i++)spawnSpecialItem('soda', { x: Math.random() * 50 - 25, y: 1, z: Math.random() * 50 - 25 });
 
-function createFallbackCart(){
+        for (let i = 0; i < 10; i++)spawnSpecialItem('watermelon', { x: Math.random() * 50 - 25, y: 1, z: Math.random() * 50 - 25 });
 
-  const group=new THREE.Group();
+        spawnSpecialItem('soda', { x: 0, y: 2, z: -25 });
 
-  const metal=new THREE.MeshStandardMaterial({color:0xbec4ca,metalness:.65,roughness:.35});
-
-  const dark=new THREE.MeshStandardMaterial({color:0x202020,roughness:.7});
-
-  const basket=new THREE.Mesh(new THREE.BoxGeometry(1.45,.8,1.65),metal);basket.position.y=1.15;basket.castShadow=true;group.add(basket);
-
-  // barras para sugerir a cesta vazada
-
-  const barMat=new THREE.MeshStandardMaterial({color:0x7e858b,metalness:.7,roughness:.3});
-
-  for(let y=.85;y<=1.5;y+=.22){
-
-    for(const x of [-.68,.68]){
-
-      const bar=new THREE.Mesh(new THREE.BoxGeometry(.045,.045,1.55),barMat);bar.position.set(x,y,0);group.add(bar);
+      }
 
     }
 
-    for(const z of [-.78,.78]){
 
-      const bar=new THREE.Mesh(new THREE.BoxGeometry(1.35,.045,.045),barMat);bar.position.set(0,y,z);group.add(bar);
+
+    gltfLoader.load('./models/banana.glb', gltf => {
+
+      bananaModel = gltf.scene;
+
+      modelsLoaded.banana = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar banana.glb', err));
+
+
+
+    gltfLoader.load('./models/watermelon.glb', gltf => {
+
+      watermelonModel = gltf.scene;
+
+      modelsLoaded.watermelon = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar watermelon.glb', err));
+
+
+
+    gltfLoader.load('./models/soda.glb', gltf => {
+
+      sodaModel = gltf.scene;
+
+      modelsLoaded.soda = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar soda.glb', err));
+
+
+
+    gltfLoader.load('./models/beer.glb', gltf => {
+
+      beerModel = gltf.scene;
+
+      modelsLoaded.beer = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar beer.glb', err));
+
+
+
+    gltfLoader.load('./models/canned1.glb', gltf => {
+
+      canned1Model = gltf.scene;
+
+      modelsLoaded.canned1 = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar canned1.glb', err));
+
+
+
+    gltfLoader.load('./models/cereal.glb', gltf => {
+
+      cerealModel = gltf.scene;
+
+      modelsLoaded.cereal = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar cereal.glb', err));
+
+
+
+    gltfLoader.load('./models/cereal2.glb', gltf => {
+
+      cereal2Model = gltf.scene;
+
+      modelsLoaded.cereal2 = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar cereal2.glb', err));
+
+
+
+    gltfLoader.load('./models/hotdog.glb', gltf => {
+
+      hotdogModel = gltf.scene;
+
+      modelsLoaded.hotdog = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar hotdog.glb', err));
+
+
+
+    gltfLoader.load('./models/milk.glb', gltf => {
+
+      milkModel = gltf.scene;
+
+      modelsLoaded.milk = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar milk.glb', err));
+
+
+
+    gltfLoader.load('./models/wall.glb', gltf => {
+
+      wallModel = gltf.scene;
+
+      modelsLoaded.wall = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar wall.glb', err));
+
+
+
+    gltfLoader.load('./models/quadro1.glb', gltf => {
+
+      quadro1Model = gltf.scene;
+
+      modelsLoaded.quadro1 = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar quadro1.glb', err));
+
+
+
+    gltfLoader.load('./models/quadro2.glb', gltf => {
+
+      quadro2Model = gltf.scene;
+
+      modelsLoaded.quadro2 = true;
+
+      checkModelsAndSpawn();
+
+    }, undefined, err => console.error('Erro ao carregar quadro2.glb', err));
+
+
+
+    // Itens especiais
+
+    function spawnSpecialItem(type, pos) {
+
+      let mesh, shape;
+
+      if (type === 'banana' && bananaModel) {
+
+        mesh = bananaModel.clone();
+
+        fitModel(mesh);
+
+        mesh.scale.setScalar(.38);
+
+        mesh.position.set(pos.x, pos.y, pos.z); mesh.castShadow = true; scene.add(mesh);
+
+        shape = new CANNON.Box(new CANNON.Vec3(.38, .3, .38));
+
+      } else if (type === 'watermelon' && watermelonModel) {
+
+        mesh = watermelonModel.clone();
+
+        fitModel(mesh);
+
+        mesh.scale.setScalar(.18);
+
+        mesh.position.set(pos.x, pos.y, pos.z); mesh.castShadow = true; scene.add(mesh);
+
+        shape = new CANNON.Sphere(.22);
+
+      } else if (type === 'soda' && sodaModel) {
+
+        mesh = sodaModel.clone();
+
+        fitModel(mesh);
+
+        mesh.scale.setScalar(.08);
+
+        mesh.position.set(pos.x, pos.y, pos.z); mesh.castShadow = true; scene.add(mesh);
+
+        shape = new CANNON.Cylinder(.05, .05, .18, 12);
+
+      } else if (type === 'banana') {
+
+        mesh = new THREE.Mesh(new THREE.TorusGeometry(.45, .13, 8, 18, Math.PI * 1.5), new THREE.MeshStandardMaterial({ color: 0xffea00 }));
+
+        mesh.rotation.x = Math.PI / 2; shape = new CANNON.Box(new CANNON.Vec3(.45, .13, .25));
+
+        mesh.position.set(pos.x, pos.y, pos.z); mesh.castShadow = true; scene.add(mesh);
+
+      } else if (type === 'soda') {
+
+        mesh = new THREE.Mesh(new THREE.CylinderGeometry(.28, .28, .85, 16), new THREE.MeshStandardMaterial({ color: 0xe21b23, metalness: .25, roughness: .3 }));
+
+        shape = new CANNON.Cylinder(.28, .28, .85, 12);
+
+        mesh.position.set(pos.x, pos.y, pos.z); mesh.castShadow = true; scene.add(mesh);
+
+      } else {
+
+        mesh = new THREE.Mesh(new THREE.SphereGeometry(.55, 16, 16), new THREE.MeshStandardMaterial({ color: 0x16b83e }));
+
+        shape = new CANNON.Sphere(.55);
+
+        mesh.position.set(pos.x, pos.y, pos.z); mesh.castShadow = true; scene.add(mesh);
+
+      }
+
+      const body = new CANNON.Body({ mass: 2, material: objectMat, position: new CANNON.Vec3(pos.x, pos.y, pos.z), linearDamping: .08, allowSleep: true, sleepSpeedLimit: .15, sleepTimeLimit: .8 });
+
+      body.addShape(shape); world.addBody(body); synced.push({ mesh, body }); dynamicBodies.push(body); specialItems.push({ type, mesh, body });
 
     }
 
-  }
 
-  const handle=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.4,12),new THREE.MeshStandardMaterial({color:0xe53935}));
 
-  handle.rotation.z=Math.PI/2;handle.position.set(0,1.75,1.15);group.add(handle);
-
-  for(const [x,z] of [[-.65,.72],[.65,.72],[-.65,-.72],[.65,-.72]]){
-
-    const wheel=new THREE.Mesh(new THREE.CylinderGeometry(.19,.19,.13,16),dark);wheel.rotation.z=Math.PI/2;wheel.position.set(x,.25,z);group.add(wheel);wheels.push(wheel);
-
-  }
-
-  return group;
-
-}
-
-function fitModel(root){
-
-  // Ajuste uniforme para o modelo caber no espaço visual do jogador.
-
-  root.updateMatrixWorld(true);
-
-  const box=new THREE.Box3().setFromObject(root);
-
-  const size=box.getSize(new THREE.Vector3());
-
-  const maxDim=Math.max(size.x,size.y,size.z);
-
-  if(!Number.isFinite(maxDim)||maxDim<=0) return;
-
-  root.scale.setScalar(3.0/maxDim);
-
-  root.updateMatrixWorld(true);
-
-  const scaledBox=new THREE.Box3().setFromObject(root);
-
-  const center=scaledBox.getCenter(new THREE.Vector3());
-
-  root.position.x-=center.x;
-
-  root.position.z-=center.z;
-
-  root.position.y-=scaledBox.min.y;
-
-}
-
-function setCartModel(root){
-
-  if(cartVisual) cartGroup.remove(cartVisual);
-
-  wheels.length=0;
-
-  fitModel(root);
-
-  cartVisual=root;
-
-  cartGroup.add(root);
-
-  // O GLB pode ter sido exportado com a frente apontando para +Z.
-
-  // Se necessário, altere a rotação abaixo para Math.PI.
-
-  root.rotation.y=0;
-
-}
-
-const gltfLoader=new GLTFLoader();
-
-gltfLoader.load(
-
-  './models/cart.glb',
-
-  gltf=>setCartModel(gltf.scene),
-
-  undefined,
-
-  error=>console.error('Não foi possível carregar ./models/cart.glb. Confirme o caminho e execute pelo Live Server.',error)
-
-);
-
-
-
-// Carregar modelos de itens especiais e prateleiras
-
-let bananaModel=null, watermelonModel=null, sodaModel=null;
-
-let beerModel=null, canned1Model=null, cerealModel=null, cereal2Model=null, hotdogModel=null, milkModel=null;
-
-let wallModel=null, quadro1Model=null, quadro2Model=null;
-
-let modelsLoaded={banana:false,watermelon:false,soda:false,beer:false,canned1:false,cereal:false,cereal2:false,hotdog:false,milk:false,wall:false,quadro1:false,quadro2:false};
-
-
-
-function checkModelsAndSpawn(){
-
-  if(modelsLoaded.banana && modelsLoaded.watermelon && modelsLoaded.soda &&
-
-     modelsLoaded.beer && modelsLoaded.canned1 && modelsLoaded.cereal &&
-
-     modelsLoaded.cereal2 && modelsLoaded.hotdog && modelsLoaded.milk &&
-
-     modelsLoaded.wall && modelsLoaded.quadro1 && modelsLoaded.quadro2){
-
-    // Spawnar prateleiras com produtos
-
-    spawnShelves();
-
-    // Spawnar paredes e quadros
-
-    spawnWallsAndDecorations();
-
-    // Spawnar itens especiais
-
-    for(let i=0;i<12;i++)spawnSpecialItem('banana',{x:Math.random()*50-25,y:1,z:Math.random()*50-25});
-
-    for(let i=0;i<8;i++)spawnSpecialItem('soda',{x:Math.random()*50-25,y:1,z:Math.random()*50-25});
-
-    for(let i=0;i<10;i++)spawnSpecialItem('watermelon',{x:Math.random()*50-25,y:1,z:Math.random()*50-25});
-
-    spawnSpecialItem('soda',{x:0,y:2,z:-25});
-
-  }
-
-}
-
-
-
-gltfLoader.load('./models/banana.glb', gltf=>{
-
-  bananaModel=gltf.scene;
-
-  modelsLoaded.banana=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar banana.glb',err));
-
-
-
-gltfLoader.load('./models/watermelon.glb', gltf=>{
-
-  watermelonModel=gltf.scene;
-
-  modelsLoaded.watermelon=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar watermelon.glb',err));
-
-
-
-gltfLoader.load('./models/soda.glb', gltf=>{
-
-  sodaModel=gltf.scene;
-
-  modelsLoaded.soda=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar soda.glb',err));
-
-
-
-gltfLoader.load('./models/beer.glb', gltf=>{
-
-  beerModel=gltf.scene;
-
-  modelsLoaded.beer=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar beer.glb',err));
-
-
-
-gltfLoader.load('./models/canned1.glb', gltf=>{
-
-  canned1Model=gltf.scene;
-
-  modelsLoaded.canned1=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar canned1.glb',err));
-
-
-
-gltfLoader.load('./models/cereal.glb', gltf=>{
-
-  cerealModel=gltf.scene;
-
-  modelsLoaded.cereal=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar cereal.glb',err));
-
-
-
-gltfLoader.load('./models/cereal2.glb', gltf=>{
-
-  cereal2Model=gltf.scene;
-
-  modelsLoaded.cereal2=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar cereal2.glb',err));
-
-
-
-gltfLoader.load('./models/hotdog.glb', gltf=>{
-
-  hotdogModel=gltf.scene;
-
-  modelsLoaded.hotdog=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar hotdog.glb',err));
-
-
-
-gltfLoader.load('./models/milk.glb', gltf=>{
-
-  milkModel=gltf.scene;
-
-  modelsLoaded.milk=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar milk.glb',err));
-
-
-
-gltfLoader.load('./models/wall.glb', gltf=>{
-
-  wallModel=gltf.scene;
-
-  modelsLoaded.wall=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar wall.glb',err));
-
-
-
-gltfLoader.load('./models/quadro1.glb', gltf=>{
-
-  quadro1Model=gltf.scene;
-
-  modelsLoaded.quadro1=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar quadro1.glb',err));
-
-
-
-gltfLoader.load('./models/quadro2.glb', gltf=>{
-
-  quadro2Model=gltf.scene;
-
-  modelsLoaded.quadro2=true;
-
-  checkModelsAndSpawn();
-
-}, undefined, err=>console.error('Erro ao carregar quadro2.glb',err));
-
-
-
-// Itens especiais
-
-function spawnSpecialItem(type,pos){
-
-  let mesh,shape;
-
-  if(type==='banana' && bananaModel){
-
-    mesh=bananaModel.clone();
-
-    fitModel(mesh);
-
-    mesh.scale.setScalar(.38);
-
-    mesh.position.set(pos.x,pos.y,pos.z);mesh.castShadow=true;scene.add(mesh);
-
-    shape=new CANNON.Box(new CANNON.Vec3(.38,.3,.38));
-
-  }else if(type==='watermelon' && watermelonModel){
-
-    mesh=watermelonModel.clone();
-
-    fitModel(mesh);
-
-    mesh.scale.setScalar(.18);
-
-    mesh.position.set(pos.x,pos.y,pos.z);mesh.castShadow=true;scene.add(mesh);
-
-    shape=new CANNON.Sphere(.22);
-
-  }else if(type==='soda' && sodaModel){
-
-    mesh=sodaModel.clone();
-
-    fitModel(mesh);
-
-    mesh.scale.setScalar(.08);
-
-    mesh.position.set(pos.x,pos.y,pos.z);mesh.castShadow=true;scene.add(mesh);
-
-    shape=new CANNON.Cylinder(.05,.05,.18,12);
-
-  }else if(type==='banana'){
-
-    mesh=new THREE.Mesh(new THREE.TorusGeometry(.45,.13,8,18,Math.PI*1.5),new THREE.MeshStandardMaterial({color:0xffea00}));
-
-    mesh.rotation.x=Math.PI/2;shape=new CANNON.Box(new CANNON.Vec3(.45,.13,.25));
-
-    mesh.position.set(pos.x,pos.y,pos.z);mesh.castShadow=true;scene.add(mesh);
-
-  }else if(type==='soda'){
-
-    mesh=new THREE.Mesh(new THREE.CylinderGeometry(.28,.28,.85,16),new THREE.MeshStandardMaterial({color:0xe21b23,metalness:.25,roughness:.3}));
-
-    shape=new CANNON.Cylinder(.28,.28,.85,12);
-
-    mesh.position.set(pos.x,pos.y,pos.z);mesh.castShadow=true;scene.add(mesh);
-
-  }else{
-
-    mesh=new THREE.Mesh(new THREE.SphereGeometry(.55,16,16),new THREE.MeshStandardMaterial({color:0x16b83e}));
-
-    shape=new CANNON.Sphere(.55);
-
-    mesh.position.set(pos.x,pos.y,pos.z);mesh.castShadow=true;scene.add(mesh);
-
-  }
-
-  const body=new CANNON.Body({mass:2,material:objectMat,position:new CANNON.Vec3(pos.x,pos.y,pos.z),linearDamping:.08,allowSleep:true,sleepSpeedLimit:.15,sleepTimeLimit:.8});
-
-  body.addShape(shape);world.addBody(body);synced.push({mesh,body});dynamicBodies.push(body);specialItems.push({type,mesh,body});
-
-}
-
-
-
-let turboTime=0,jumpCooldown=0;
-const visualEffects=[];
-const particleGeometry=new THREE.SphereGeometry(0.12,6,6);
-const particleMaterials=[0xff6b35,0xffd166,0xffffff,0x4ade80].map(color=>new THREE.MeshBasicMaterial({color,transparent:true,opacity:1}));
-
-function promoteBody(body){
-  if(body.mass>0) return;
-  body.mass=1;
-  body.type=CANNON.Body.DYNAMIC;
-  body.updateMassProperties();
-  body.wakeUp();
-  if(!dynamicBodies.includes(body)) dynamicBodies.push(body);
-}
-
-function triggerExplosion(center){
-  const origin=new CANNON.Vec3(center.x,center.y,center.z);
-  showStatus('🍉 KABOOOOOM!','#ff8a00');
-
-  // Pulso visual: anel expansivo e partículas de polpa.
-  const blast=new THREE.Mesh(new THREE.SphereGeometry(1,16,12),new THREE.MeshBasicMaterial({color:0xff5533,transparent:true,opacity:0.42,depthWrite:false,side:THREE.BackSide}));
-  blast.position.set(center.x,center.y,center.z);
-  scene.add(blast);
-  visualEffects.push({kind:'blast',mesh:blast,age:0,duration:0.48,maxScale:8});
-  for(let i=0;i<34;i++){
-    const mat=particleMaterials[i%particleMaterials.length].clone();
-    const particle=new THREE.Mesh(particleGeometry,mat);
-    particle.position.set(center.x,center.y,center.z);
-    scene.add(particle);
-    const dir=new THREE.Vector3(Math.random()*2-1,Math.random()*1.7+0.25,Math.random()*2-1).normalize();
-    const speed=5+Math.random()*13;
-    visualEffects.push({kind:'particle',mesh:particle,age:0,duration:0.75+Math.random()*0.6,velocity:dir.multiplyScalar(speed)});
-  }
-
-  // Acorda e lança os produtos próximos. Produtos de prateleira leves viram dinâmicos
-  // apenas quando entram no raio da explosão.
-  const candidates=[...dynamicBodies,...(window.__shelfBodies||[])];
-  const seen=new Set();
-  for(const body of candidates){
-    if(!body || seen.has(body) || body===cartBody) continue;
-    seen.add(body);
-    const d=body.position.distanceTo(origin);
-    if(d<18){
-      promoteBody(body);
-      const dir=body.position.vsub(origin);
-      if(dir.lengthSquared()<0.01) dir.set(Math.random()-0.5,1,Math.random()-0.5);
-      dir.normalize();
-      const strength=Math.max(0,18-d);
-      body.applyImpulse(dir.scale(strength*body.mass*2.1),body.position);
-      body.applyImpulse(new CANNON.Vec3(0,body.mass*(2+strength*0.3),0),body.position);
+    let turboTime = 0, jumpCooldown = 0;
+    const visualEffects = [];
+    const particleGeometry = new THREE.SphereGeometry(0.12, 6, 6);
+    const particleMaterials = [0xff6b35, 0xffd166, 0xffffff, 0x4ade80].map(color => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 1 }));
+
+    function promoteBody(body) {
+      if (body.mass > 0) return;
+      body.mass = 1;
+      body.type = CANNON.Body.DYNAMIC;
+      body.updateMassProperties();
+      body.wakeUp();
+      if (!dynamicBodies.includes(body)) dynamicBodies.push(body);
     }
-  }
 
-  // O carrinho também sente o impacto, mas a explosão não pode parar o jogo.
-  const cartDistance=cartBody.position.distanceTo(origin);
-  if(cartDistance<18){
-    const dir=cartBody.position.vsub(origin);
-    if(dir.lengthSquared()<0.01) dir.set(0,1,0);
-    dir.normalize();
-    cartBody.applyImpulse(dir.scale(Math.max(0,18-cartDistance)*cartBody.mass*0.7),cartBody.position);
-    cartBody.applyImpulse(new CANNON.Vec3(0,cartBody.mass*1.2,0),cartBody.position);
-    cartBody.wakeUp();
-  }
-}
+    function triggerExplosion(center) {
+      const origin = new CANNON.Vec3(center.x, center.y, center.z);
+      showStatus('🍉 KABOOOOOM!', '#ff8a00');
 
-window.addEventListener('keydown',e=>{
+      // Pulso visual: anel expansivo e partículas de polpa.
+      const blast = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), new THREE.MeshBasicMaterial({ color: 0xff5533, transparent: true, opacity: 0.42, depthWrite: false, side: THREE.BackSide }));
+      blast.position.set(center.x, center.y, center.z);
+      scene.add(blast);
+      visualEffects.push({ kind: 'blast', mesh: blast, age: 0, duration: 0.48, maxScale: 8 });
+      for (let i = 0; i < 34; i++) {
+        const mat = particleMaterials[i % particleMaterials.length].clone();
+        const particle = new THREE.Mesh(particleGeometry, mat);
+        particle.position.set(center.x, center.y, center.z);
+        scene.add(particle);
+        const dir = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 1.7 + 0.25, Math.random() * 2 - 1).normalize();
+        const speed = 5 + Math.random() * 13;
+        visualEffects.push({ kind: 'particle', mesh: particle, age: 0, duration: 0.75 + Math.random() * 0.6, velocity: dir.multiplyScalar(speed) });
+      }
 
-  const k=e.key.length===1 ? e.key.toLowerCase() : e.key;
+      // Acorda e lança os produtos próximos. Produtos de prateleira leves viram dinâmicos
+      // apenas quando entram no raio da explosão.
+      const candidates = [...dynamicBodies, ...(window.__shelfBodies || [])];
+      const seen = new Set();
+      for (const body of candidates) {
+        if (!body || seen.has(body) || body === cartBody) continue;
+        seen.add(body);
+        const d = body.position.distanceTo(origin);
+        if (d < 18) {
+          promoteBody(body);
+          const dir = body.position.vsub(origin);
+          if (dir.lengthSquared() < 0.01) dir.set(Math.random() - 0.5, 1, Math.random() - 0.5);
+          dir.normalize();
+          const strength = Math.max(0, 18 - d);
+          body.applyImpulse(dir.scale(strength * body.mass * 2.1), body.position);
+          body.applyImpulse(new CANNON.Vec3(0, body.mass * (2 + strength * 0.3), 0), body.position);
+        }
+      }
 
-  if(Object.prototype.hasOwnProperty.call(keys,k)) keys[k]=true;
-
-  // Acorda o corpo físico ao receber qualquer comando de movimento.
-
-  if(['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(k)){
-
-    cartBody.wakeUp();
-
-  }
-
-  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
-
-});
-
-window.addEventListener('keyup',e=>{
-
-  const k=e.key.toLowerCase();
-
-  if(Object.prototype.hasOwnProperty.call(keys,k)) keys[k]=false;
-
-  if(Object.prototype.hasOwnProperty.call(keys,e.key)) keys[e.key]=false;
-
-});
-
-window.addEventListener('blur',()=>Object.keys(keys).forEach(k=>keys[k]=false));
-
-window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
-
-
-
-const clock=new THREE.Clock();
-
-const forward=new CANNON.Vec3(), impulse=new CANNON.Vec3();
-
-function animate(){
-
-  requestAnimationFrame(animate);
-
-  const delta=Math.min(clock.getDelta(),.033);
-
-  // Movimento arcade por velocidade: não depende da força vencer o atrito/física.
-
-  const accelerating=keys.w||keys.ArrowUp, reversing=keys.s||keys.ArrowDown;
-
-  const left=keys.a||keys.ArrowLeft,right=keys.d||keys.ArrowRight;
-
-  if(accelerating||reversing||left||right||keys[' ']) cartBody.wakeUp();
-
-  if(left||right){
-
-    const reverseSteer=(reversing&&!accelerating)?-1:1;
-
-    currentHeading+=(left?1:0)*2.5*delta*reverseSteer;
-
-    currentHeading-=(right?1:0)*2.5*delta*reverseSteer;
-
-  }
-
-  const maxSpeed = turboTime > 0 ? 28 : 16;
-
-  const targetSpeed=accelerating?maxSpeed:(reversing?-maxSpeed*.55:0);
-
-  let currentForwardSpeed=cartBody.velocity.x*(-Math.sin(currentHeading))+cartBody.velocity.z*(-Math.cos(currentHeading));
-
-  const accel = accelerating || reversing ? 35 : 20;
-  const difference=targetSpeed-currentForwardSpeed;
-
-  currentForwardSpeed+=THREE.MathUtils.clamp(difference,-accel*delta,accel*delta);
-
-  cartBody.velocity.x=-Math.sin(currentHeading)*currentForwardSpeed;
-
-  cartBody.velocity.z=-Math.cos(currentHeading)*currentForwardSpeed;
-
-  // Força o movimento no plano XZ, ignorando o solver de física
-  if(accelerating||reversing){
-    cartBody.position.x+=cartBody.velocity.x*delta;
-    cartBody.position.z+=cartBody.velocity.z*delta;
-  }
-
-  // Garante que a velocidade recém-calculada seja aplicada pelo motor de física.
-
-  if(accelerating||reversing||left||right) cartBody.wakeUp();
-
-  // Bloqueia a rotação física; o código controla o rumo.
-
-  cartBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),currentHeading);
-
-  cartBody.angularVelocity.set(0,0,0);
-
-  const speed=Math.abs(currentForwardSpeed);
-
-  if(turboTime>0)turboTime=Math.max(0,turboTime-delta);
-
-  if(jumpCooldown>0)jumpCooldown-=delta;
-
-  if(keys[' ']&&jumpCooldown<=0&&cartBody.position.y<2.2){
-
-    cartBody.velocity.y=10;jumpCooldown=.9;jumpActiveTime=.42;
-
-  }
-
-  // Gravidade manual para corpo kinematico
-  cartBody.velocity.y-=20*delta;
-  cartBody.position.y+=cartBody.velocity.y*delta;
-  if(cartBody.position.y<2){
-    cartBody.position.y=2;
-    cartBody.velocity.y=0;
-  }
-
-  world.step(1/60,delta,4);
-
-  // Evita o carrinho quicar continuamente por pequenas correções de colisão.
-  // O salto manual continua livre durante o intervalo iniciado pela tecla Espaço.
-  jumpActiveTime=Math.max(0,jumpActiveTime-delta);
-  if(jumpActiveTime<=0 && cartBody.position.y<0.72){
-    cartBody.position.y=0.55;
-    if(cartBody.velocity.y<0) cartBody.velocity.y=0;
-  }
-  cartGroup.position.set(cartBody.position.x,cartBody.position.y-.55,cartBody.position.z);
-
-  cartGroup.rotation.set(0,currentHeading,0);
-
-  for(const item of synced){
-    // Produtos de prateleira só entram na física dinâmica quando o carrinho chega perto.
-    if(item.body.userData && item.body.userData.promotable && item.body.mass===0 && cartBody.position.distanceTo(item.body.position)<2.8){
-      promoteBody(item.body);
-      const push=item.body.position.vsub(cartBody.position);
-      if(push.lengthSquared()<0.01) push.set(0,0,1);
-      push.normalize();
-      item.body.applyImpulse(push.scale(5),item.body.position);
-      item.body.applyImpulse(new CANNON.Vec3(0,2.5,0),item.body.position);
+      // O carrinho também sente o impacto, mas a explosão não pode parar o jogo.
+      const cartDistance = cartBody.position.distanceTo(origin);
+      if (cartDistance < 18) {
+        const dir = cartBody.position.vsub(origin);
+        if (dir.lengthSquared() < 0.01) dir.set(0, 1, 0);
+        dir.normalize();
+        cartBody.applyImpulse(dir.scale(Math.max(0, 18 - cartDistance) * cartBody.mass * 0.7), cartBody.position);
+        cartBody.applyImpulse(new CANNON.Vec3(0, cartBody.mass * 1.2, 0), cartBody.position);
+        cartBody.wakeUp();
+      }
     }
-    if(item.body.mass>0){item.mesh.position.copy(item.body.position);item.mesh.quaternion.copy(item.body.quaternion);}
-  }
 
-  for(let i=visualEffects.length-1;i>=0;i--){
-    const fx=visualEffects[i]; fx.age+=delta;
-    const t=Math.min(1,fx.age/fx.duration);
-    if(fx.kind==='blast'){
-      const scale=0.5+fx.maxScale*t; fx.mesh.scale.setScalar(scale);
-      fx.mesh.material.opacity=0.42*(1-t);
-    }else{
-      fx.mesh.position.addScaledVector(fx.velocity,delta);
-      fx.velocity.y-=12*delta;
-      fx.mesh.scale.setScalar(Math.max(0.05,1-t));
-      fx.mesh.material.opacity=1-t;
-    }
-    if(t>=1){scene.remove(fx.mesh);fx.mesh.geometry===particleGeometry?fx.mesh.material.dispose():fx.mesh.material.dispose();visualEffects.splice(i,1);}
-  }
+    window.addEventListener('keydown', e => {
 
-  // Gira as rodas do carrinho de reserva, caso existam.
+      const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
 
-  for(const wheel of wheels)wheel.rotation.x+=speed*delta*2.5;
+      if (Object.prototype.hasOwnProperty.call(keys, k)) keys[k] = true;
 
-  for(let i=specialItems.length-1;i>=0;i--){
+      // Acorda o corpo físico ao receber qualquer comando de movimento.
 
-    const item=specialItems[i];
+      if (['w', 'a', 's', 'd', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(k)) {
 
-    if(cartBody.position.distanceTo(item.body.position)<2.05){
+        cartBody.wakeUp();
 
-      if(item.type==='banana'){showStatus('ESCORREGOU!','#ffea00');currentHeading+=Math.PI;cartBody.velocity.x+=Math.sin(currentHeading)*4;cartBody.velocity.z+=Math.cos(currentHeading)*4;}
+      }
 
-      else if(item.type==='soda'){showStatus('TURBOOO!');turboTime=3.5;}
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
 
-      else triggerExplosion(item.body.position);
+    });
 
-      scene.remove(item.mesh);world.removeBody(item.body);
+    window.addEventListener('keyup', e => {
 
-      const si=synced.findIndex(o=>o.body===item.body);if(si>=0)synced.splice(si,1);
+      const k = e.key.toLowerCase();
 
-      const di=dynamicBodies.indexOf(item.body);if(di>=0)dynamicBodies.splice(di,1);
+      if (Object.prototype.hasOwnProperty.call(keys, k)) keys[k] = false;
 
-      specialItems.splice(i,1);
+      if (Object.prototype.hasOwnProperty.call(keys, e.key)) keys[e.key] = false;
+
+    });
+
+    window.addEventListener('blur', () => Object.keys(keys).forEach(k => keys[k] = false));
+
+    window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+
+
+    const clock = new THREE.Clock();
+
+    const forward = new CANNON.Vec3(), impulse = new CANNON.Vec3();
+
+    function animate() {
+
+      requestAnimationFrame(animate);
+
+      const delta = Math.min(clock.getDelta(), .033);
+
+      // Movimento arcade por velocidade: não depende da força vencer o atrito/física.
+
+      const accelerating = keys.w || keys.ArrowUp, reversing = keys.s || keys.ArrowDown;
+
+      const left = keys.a || keys.ArrowLeft, right = keys.d || keys.ArrowRight;
+
+      if (accelerating || reversing || left || right || keys[' ']) cartBody.wakeUp();
+
+      if (left || right) {
+
+        const reverseSteer = (reversing && !accelerating) ? -1 : 1;
+
+        currentHeading += (left ? 1 : 0) * 2.5 * delta * reverseSteer;
+
+        currentHeading -= (right ? 1 : 0) * 2.5 * delta * reverseSteer;
+
+      }
+
+      const maxSpeed = turboTime > 0 ? 28 : 16;
+
+      const targetSpeed = accelerating ? maxSpeed : (reversing ? -maxSpeed * .55 : 0);
+
+      let currentForwardSpeed = cartBody.velocity.x * (-Math.sin(currentHeading)) + cartBody.velocity.z * (-Math.cos(currentHeading));
+
+      const accel = accelerating || reversing ? 35 : 20;
+      const difference = targetSpeed - currentForwardSpeed;
+
+      currentForwardSpeed += THREE.MathUtils.clamp(difference, -accel * delta, accel * delta);
+
+      cartBody.velocity.x = -Math.sin(currentHeading) * currentForwardSpeed;
+
+      cartBody.velocity.z = -Math.cos(currentHeading) * currentForwardSpeed;
+
+      // Força o movimento no plano XZ, ignorando o solver de física
+      if (accelerating || reversing) {
+        cartBody.position.x += cartBody.velocity.x * delta;
+        cartBody.position.z += cartBody.velocity.z * delta;
+      }
+
+      // Garante que a velocidade recém-calculada seja aplicada pelo motor de física.
+
+      if (accelerating || reversing || left || right) cartBody.wakeUp();
+
+      // Bloqueia a rotação física; o código controla o rumo.
+
+      cartBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0, 1, 0), currentHeading);
+
+      cartBody.angularVelocity.set(0, 0, 0);
+
+      const speed = Math.abs(currentForwardSpeed);
+
+      if (turboTime > 0) turboTime = Math.max(0, turboTime - delta);
+
+      if (jumpCooldown > 0) jumpCooldown -= delta;
+
+      if (keys[' '] && jumpCooldown <= 0 && cartBody.position.y < 2.2) {
+
+        cartBody.velocity.y = 10; jumpCooldown = .9; jumpActiveTime = .42;
+
+      }
+
+      // Gravidade manual para corpo kinematico
+      cartBody.velocity.y -= 20 * delta;
+      cartBody.position.y += cartBody.velocity.y * delta;
+      if (cartBody.position.y < 2) {
+        cartBody.position.y = 2;
+        cartBody.velocity.y = 0;
+      }
+
+      world.step(1 / 60, delta, 4);
+
+      // Evita o carrinho quicar continuamente por pequenas correções de colisão.
+      // O salto manual continua livre durante o intervalo iniciado pela tecla Espaço.
+      jumpActiveTime = Math.max(0, jumpActiveTime - delta);
+      if (jumpActiveTime <= 0 && cartBody.position.y < 0.72) {
+        cartBody.position.y = 0.55;
+        if (cartBody.velocity.y < 0) cartBody.velocity.y = 0;
+      }
+      cartGroup.position.set(cartBody.position.x, cartBody.position.y - .55, cartBody.position.z);
+
+      cartGroup.rotation.set(0, currentHeading, 0);
+
+      for (const item of synced) {
+        // Produtos de prateleira só entram na física dinâmica quando o carrinho chega perto.
+        if (item.body.userData && item.body.userData.promotable && item.body.mass === 0 && cartBody.position.distanceTo(item.body.position) < 2.8) {
+          promoteBody(item.body);
+          const push = item.body.position.vsub(cartBody.position);
+          if (push.lengthSquared() < 0.01) push.set(0, 0, 1);
+          push.normalize();
+          item.body.applyImpulse(push.scale(5), item.body.position);
+          item.body.applyImpulse(new CANNON.Vec3(0, 2.5, 0), item.body.position);
+        }
+        if (item.body.mass > 0) { item.mesh.position.copy(item.body.position); item.mesh.quaternion.copy(item.body.quaternion); }
+      }
+
+      for (let i = visualEffects.length - 1; i >= 0; i--) {
+        const fx = visualEffects[i]; fx.age += delta;
+        const t = Math.min(1, fx.age / fx.duration);
+        if (fx.kind === 'blast') {
+          const scale = 0.5 + fx.maxScale * t; fx.mesh.scale.setScalar(scale);
+          fx.mesh.material.opacity = 0.42 * (1 - t);
+        } else {
+          fx.mesh.position.addScaledVector(fx.velocity, delta);
+          fx.velocity.y -= 12 * delta;
+          fx.mesh.scale.setScalar(Math.max(0.05, 1 - t));
+          fx.mesh.material.opacity = 1 - t;
+        }
+        if (t >= 1) { scene.remove(fx.mesh); fx.mesh.geometry === particleGeometry ? fx.mesh.material.dispose() : fx.mesh.material.dispose(); visualEffects.splice(i, 1); }
+      }
+
+      // Gira as rodas do carrinho de reserva, caso existam.
+
+      for (const wheel of wheels) wheel.rotation.x += speed * delta * 2.5;
+
+      for (let i = specialItems.length - 1; i >= 0; i--) {
+
+        const item = specialItems[i];
+
+        if (cartBody.position.distanceTo(item.body.position) < 2.05) {
+
+          if (item.type === 'banana') { showStatus('ESCORREGOU!', '#ffea00'); currentHeading += Math.PI; cartBody.velocity.x += Math.sin(currentHeading) * 4; cartBody.velocity.z += Math.cos(currentHeading) * 4; }
+
+          else if (item.type === 'soda') { showStatus('TURBOOO!'); turboTime = 3.5; }
+
+          else triggerExplosion(item.body.position);
+
+          scene.remove(item.mesh); world.removeBody(item.body);
+
+          const si = synced.findIndex(o => o.body === item.body); if (si >= 0) synced.splice(si, 1);
+
+          const di = dynamicBodies.indexOf(item.body); if (di >= 0) dynamicBodies.splice(di, 1);
+
+          specialItems.splice(i, 1);
+
+        }
+
+      }
+
+      const offset = new THREE.Vector3(0, 5, 9).applyAxisAngle(new THREE.Vector3(0, 1, 0), currentHeading);
+
+      const target = new THREE.Vector3(cartGroup.position.x + offset.x, cartGroup.position.y + offset.y, cartGroup.position.z + offset.z);
+
+      camera.position.lerp(target, .12);
+
+      camera.lookAt(cartGroup.position.x, cartGroup.position.y + 1, cartGroup.position.z);
+
+      renderer.render(scene, camera);
 
     }
 
-  }
+    camera.position.set(0, 7, 20); camera.lookAt(0, 0, 0); animate();
 
-  const offset=new THREE.Vector3(0,5,9).applyAxisAngle(new THREE.Vector3(0,1,0),currentHeading);
-
-  const target=new THREE.Vector3(cartGroup.position.x+offset.x,cartGroup.position.y+offset.y,cartGroup.position.z+offset.z);
-
-  camera.position.lerp(target,.12);
-
-  camera.lookAt(cartGroup.position.x,cartGroup.position.y+1,cartGroup.position.z);
-
-  renderer.render(scene,camera);
-
-}
-
-camera.position.set(0,7,20);camera.lookAt(0,0,0);animate();
-
-</script>
+  </script>
 
 </body>
 
