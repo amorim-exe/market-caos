@@ -183,13 +183,14 @@
 
       <div class="panel" id="mission">
         <h3>🛒 LISTA DE COMPRAS</h3>
-        <p>🍌 Banana: <span id="goal-banana">0/3</span></p>
-        <p>🥤 Refri: <span id="goal-soda">0/2</span></p>
+        <p>🍺 Cerveja: <span id="goal-beer">0/2</span></p>
+        <p>🥫 Latas: <span id="goal-can">0/3</span></p>
         <p>🥛 Leite: <span id="goal-milk">0/2</span></p>
-        <p>🥣 Cereal: <span id="goal-cereal">0/1</span></p>
+        <p>🥣 Cereal: <span id="goal-cereal">0/2</span></p>
+        <p>🌭 Hot-dog: <span id="goal-hotdog">0/2</span></p>
         <hr>
         <p>⭐ Pontos: <span id="score">0</span></p>
-        <p id="drag-hint">Clique e arraste os produtos para o carrinho!</p>
+        <p id="drag-hint">Clique e arraste os produtos das prateleiras para o carrinho!</p>
       </div>
 
     </div>
@@ -709,17 +710,19 @@
     let score = 0;
 
     const goals = {
-      banana: 3,
-      soda: 2,
+      beer: 2,
+      can: 3,
       milk: 2,
-      cereal: 1
+      cereal: 2,
+      hotdog: 2
     };
 
     const collected = {
-      banana: 0,
-      soda: 0,
+      beer: 0,
+      can: 0,
       milk: 0,
-      cereal: 0
+      cereal: 0,
+      hotdog: 0
     };
 
     function updateMission() {
@@ -852,7 +855,10 @@
         if (specialIndex !== -1) specialItems.splice(specialIndex, 1);
 
         // Os produtos de missão avançam a lista; os extras dão pontos.
-        if (Object.hasOwn(goals, type) && collected[type] < goals[type]) {
+        if (
+          Object.hasOwn(goals, type) &&
+          collected[type] < goals[type]
+        ) {
           collected[type]++;
           score += 100;
           showStatus('BOA! +100 ⭐', '#4ade80');
